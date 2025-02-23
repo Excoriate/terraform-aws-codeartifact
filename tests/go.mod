@@ -1,4 +1,4 @@
-module github.com/Excoriate/terraform-registry-module-template/tests
+module github.com/Excoriate/terraform-aws-codeartifact/tests
 
 go 1.23.4
 

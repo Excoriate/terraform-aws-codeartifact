@@ -1,6 +1,6 @@
 ---
 repository:
-  name: terraform-registry-module-template
+  name: terraform-aws-codeartifact
   description: A comprehensive template repository for Terraform modules with best practices and GitHub workflow integrations.
 
   # Template Repository Configuration - CRITICAL NEW ADDITION
