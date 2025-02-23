@@ -30,6 +30,9 @@
 **/build/
 **/dist/
 
+# Mac
+.DS_Store
+
 .idea/
 .vscode/
 
