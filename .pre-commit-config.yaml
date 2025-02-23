@@ -1,0 +1,64 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: detect-aws-credentials
+        args:
+          - '--allow-missing-credentials'
+      - id: check-json
+        exclude: >
+          (?x)^(
+            .release-please-manifest\.json|
+            release-please-config\.json|
+            .releaserc\.json
+          )$
+      - id: pretty-format-json
+        exclude: >
+          (?x)^(
+            .release-please-manifest\.json|
+            release-please-config\.json|
+            .releaserc\.json
+          )$
+      - id: check-docstring-first
+        args:
+          - '--autofix'
+
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        files: ^tests/(.*/)*.*\.go$
+      - id: go-mod-tidy
+        files: ^tests/(.*/)*.*\.go$
+
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.16.0
+    hooks:
+      - id: yamlfmt
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: YAML Lint
+        args:
+          - '-c=.yamllint.yml'
+        exclude: >
+          (?x)^(
+            .releaserc.json|
+            modules/default/.terraform-docs.yml
+          )$
+
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.25
+    hooks:
+      - id: shellcheck
