@@ -40,68 +40,51 @@
 
 **Mandatory Module-Specific Requirements**:
 - Define all variables exclusively in `variables.tf`. Never create variables in the `main.tf` file.
-- Create a `var.is_enabled` variable to enable/disable the entire module
-- When dealing with cloud providers that support tagging (like AWS), always create a `tags` variable
-- Provide comprehensive, verbose descriptions using EOT (End of Text) formatting
-- Implement strict type constraints and validation blocks
+- Create a `var.is_enabled` variable to enable/disable the entire module.
+- When dealing with cloud providers that support tagging (like AWS), always create a `tags` variable.
+- Provide comprehensive, continuous descriptions that explain the purpose, impact, and usage of the variable.
+- Implement strict type constraints and validation blocks.
+- Use `is_*_enabled` naming convention for feature flags (e.g., `is_kms_key_enabled`, `is_log_group_enabled`).
 
 #### Rule: Module-Specific Variable Examples
 
 ```hcl
 variable "is_enabled" {
-    description = <<-EOT
-        Enforce global module resource creation toggle with comprehensive configuration control.
-
-        Mandatory Purpose:
-        - Provide centralized mechanism for dynamic module resource provisioning
-        - Enable fine-grained module infrastructure management
-        - Support complex deployment scenarios
-
-        Behavioral Enforcement:
-        - true: Provision ALL resources defined in the module
-        - false: PREVENT all resource creation, enabling strict "dry run" mode
-
-        Strategic Deployment Use Cases:
-        - Environment-specific infrastructure deployment
-        - Temporary module service suspension
-        - Precise cost optimization and resource control
-        - Conditional infrastructure management
-    EOT
+    description = "Controls whether to create any resources in this module. When set to false, no resources will be created regardless of other variable settings. This is useful for conditional resource creation or temporary resource disablement without removing the module configuration."
     type        = bool
     default     = true
 }
 
-variable "tags" {
-    description = <<-EOT
-        Enforce comprehensive tagging mechanism for uniform module resource management and governance.
+variable "kms_key_deletion_window" {
+    type        = number
+    description = "Specifies the duration in days that AWS KMS waits before permanently deleting the KMS key. This waiting period provides a safeguard against accidental deletion by allowing time for key recovery if needed. The value must be between 7 and 30 days, with a recommended minimum of 7 days to ensure adequate time for key recovery in case of accidental deletion."
+    default     = 7
 
-        Mandatory Purpose:
-        - Implement consistent module resource labeling
-        - Enable advanced module resource tracking and cost allocation
-        - Support organizational compliance and governance requirements
-
-        Tagging Strategy Enforcement:
-        - Keys: Mandate descriptive, standardized naming convention
-        - Values: Provide specific context, metadata, or organizational information
-
-        Required Organizational Tags:
-        - Environment: Deployment stage (dev, staging, prod)
-        - Project: Specific project or application name
-        - ManagedBy: Infrastructure management method (Terraform)
-        - CostCenter: Organizational financial tracking identifier
-        - Owner: Team or department responsible for the module
-
-        Validation Rules:
-        - Enforce alphanumeric tag keys
-        - Allow underscores and hyphens for enhanced readability
-        - Prevent invalid or inconsistent tag configurations
-    EOT
-    type        = map(string)
-    default     = {}
     validation {
-        condition     = can([for k, v in var.tags : regex("^[a-zA-Z0-9_-]+$", k)])
-        error_message = "Reject tag keys not meeting alphanumeric standards with optional underscores or hyphens."
+        condition     = var.kms_key_deletion_window >= 7 && var.kms_key_deletion_window <= 30
+        error_message = "The KMS key deletion window must be between 7 and 30 days."
     }
+}
+
+variable "tags" {
+    type        = map(string)
+    description = "A map of tags to assign to all resources created by this module. These tags will be applied to all resources that support tagging, helping with resource organization, cost allocation, and access control. Tags should follow your organization's tagging strategy and might include values for environment, project, owner, or other relevant categories."
+    default     = {}
+}
+```
+
+### Rule: Feature Flag Naming Convention
+**Requirement**: Use the `is_*_enabled` pattern for all feature flags:
+
+```hcl
+locals {
+    # Feature flags for resource creation
+    is_kms_key_enabled    = var.is_enabled
+    is_log_group_enabled  = var.is_enabled
+    is_s3_bucket_enabled  = var.is_enabled
+
+    # Resource-specific configurations
+    kms_key_description = "KMS key for encrypting CodeArtifact artifacts"
 }
 ```
 
