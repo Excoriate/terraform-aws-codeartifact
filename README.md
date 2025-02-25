@@ -1,7 +1,7 @@
 <h1 align="center">
   <img alt="logo" src="https://forum.huawei.com/enterprise/en/data/attachment/forum/202204/21/120858nak5g1epkzwq5gcs.png" width="224px"/><br/>
 
-[![🧼 Pre-commit Hooks](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/pre-commit.yml) [![📚 Terraform Modules CI](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/tf-modules-ci.yaml/badge.svg)](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/tf-modules-ci.yaml) [![🦫 Go Code Quality Checks](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/go-linter.yaml/badge.svg)](https://github.com/Excoriate/terraform-registry-module-template/actions/workflows/go-linter.yaml)
+[![🧼 Pre-commit Hooks](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/pre-commit.yml) [![📚 Terraform Modules CI](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/tf-modules-ci.yaml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/tf-modules-ci.yaml) [![🦫 Go Code Quality Checks](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/go-linter.yaml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/go-linter.yaml)
 ---
 
 ## Terraform Registry Module Template
@@ -46,7 +46,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Modules** (`/modules`):
   - [Module Development Guidelines](/modules/README.md)
-  - [Terraform Modules StyleGuide](/docs/terraform-modules-styleguide.md)
+  - [Terraform Modules StyleGuide](/docs/guides/terraform-modules-styleguide.md)
   - Reusable, well-structured Terraform module implementations
 
 - **Examples** (`/examples`):
@@ -55,11 +55,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - Progressive complexity from basic to advanced scenarios
 
 - **Docs** (`/docs`):
-  - [Developer Guide](/docs/developer-guide.md)
-  - [Terraform StyleGuide](/docs/terraform-styleguide.md)
+  - [Developer Guide](/docs/guides/developer-guide.md)
+  - [Terraform StyleGuide](/docs/guides/terraform-styleguide.md)
   - [Project Roadmap](/docs/ROADMAP.md)
   - Comprehensive project documentation and future plans
 
 **📘 Additional Resources:**
 - [Contribution Guidelines](CONTRIBUTING.md)
-- [Terraform Registry Module Best Practices](/docs/terraform-modules-styleguide.md)
+- [Terraform Registry Module Best Practices](/docs/guides/terraform-modules-styleguide.md)

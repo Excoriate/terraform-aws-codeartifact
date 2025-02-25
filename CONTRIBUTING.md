@@ -31,11 +31,11 @@
    ```bash
    # 1. Fork the repository on GitHub
    # 2. Clone your forked repository
-   git clone https://github.com/YOUR_GITHUB_USERNAME/terraform-registry-module-template.git
-   cd terraform-registry-module-template
+   git clone https://github.com/YOUR_GITHUB_USERNAME/terraform-aws-codeartifact.git
+   cd terraform-aws-codeartifact
 
    # 3. Add the original repository as a remote
-   git remote add upstream https://github.com/Excoriate/terraform-registry-module-template.git
+   git remote add upstream https://github.com/Excoriate/terraform-aws-codeartifact.git
    ```
 
 2. **Install Pre-commit Hooks**
@@ -186,7 +186,7 @@ Refer to our [SECURITY.md](SECURITY.md) for responsible disclosure.
 
 ## 🤝 Community Guidelines
 
-- Open an [Issue](https://github.com/Excoriate/terraform-registry-module-template/issues/new)
+- Open an [Issue](https://github.com/Excoriate/terraform-aws-codeartifact/issues/new)
 - Respect our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## 📚 Learning Resources
