@@ -304,7 +304,7 @@ Namespaces help organize packages and prevent name collisions:
 - Supported in formats like npm and Maven
 - Examples:
   * npm: `@types/node` (namespace: `@types`, name: `node`)
-  * Maven: `org.apache.logging.log4j:log4j` 
+  * Maven: `org.apache.logging.log4j:log4j`
     (namespace: `org.apache.logging.log4j`, name: `log4j`)
 
 ### Package Version

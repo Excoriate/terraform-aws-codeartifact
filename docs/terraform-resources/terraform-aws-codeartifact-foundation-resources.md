@@ -22,12 +22,12 @@ Provides a CloudWatch Log Group resource.
 ### Example Usage
 
 ```terraform
-resource "aws_cloudwatch_log_group" "yada" { 
-  name = "Yada" 
-  tags = { 
-    Environment = "production" 
-    Application = "serviceA" 
-  } 
+resource "aws_cloudwatch_log_group" "yada" {
+  name = "Yada"
+  tags = {
+    Environment = "production"
+    Application = "serviceA"
+  }
 }
 ```
 
@@ -62,11 +62,11 @@ Provides an IAM policy.
 ### Example Usage
 
 ```terraform
-resource "aws_iam_policy" "policy" { 
+resource "aws_iam_policy" "policy" {
   name        = "test_policy"
   path        = "/"
   description = "My test policy"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -158,7 +158,7 @@ Provides an IAM role.
 ```terraform
 resource "aws_iam_role" "test_role" {
   name = "test_role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -171,7 +171,7 @@ resource "aws_iam_role" "test_role" {
       }
     ]
   })
-  
+
   tags = {
     tag-key = "tag-value"
   }
@@ -220,7 +220,7 @@ Provides an IAM role inline policy.
 resource "aws_iam_role_policy" "test_policy" {
   name = "test_policy"
   role = aws_iam_role.test_role.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -382,7 +382,7 @@ resource "aws_kms_key" "example" {
   description             = "An example symmetric encryption KMS key"
   enable_key_rotation     = true
   deletion_window_in_days = 20
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Id      = "key-default-1"
@@ -440,7 +440,7 @@ Provides an S3 bucket resource for storing and managing artifacts, backups, and 
 ```terraform
 resource "aws_s3_bucket" "codeartifact_backup" {
   bucket = "my-codeartifact-backup-bucket"
-  
+
   tags = {
     Name        = "CodeArtifact Backup Bucket"
     Environment = "Production"
@@ -510,7 +510,7 @@ resource "aws_kms_key" "codeartifact_encryption_key" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "codeartifact_encryption" {
   bucket = aws_s3_bucket.codeartifact_backup.id
-  
+
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.codeartifact_encryption_key.arn
@@ -537,7 +537,7 @@ Manages versioning configuration for an S3 bucket to track and preserve object v
 ```terraform
 resource "aws_s3_bucket_versioning" "codeartifact_versioning" {
   bucket = aws_s3_bucket.codeartifact_backup.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }

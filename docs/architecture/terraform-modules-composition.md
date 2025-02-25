@@ -93,11 +93,11 @@ graph TD
     D --> |"Outputs: domain_name"| M
     R --> |"Outputs: repository_names"| M
     S --> |"Outputs: role_arns"| M
-    
+
     classDef mvp fill:#d0f0c0,stroke:#333;
     classDef mvpCore fill:#e8f0c0,stroke:#333;
     classDef mvpBasic fill:#f0e0c0,stroke:#333;
-    
+
     class F,D,R,E mvp;
     class S,C mvpCore;
     class M mvpBasic;
