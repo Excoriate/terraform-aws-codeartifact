@@ -17,6 +17,45 @@ variable "is_enabled" {
   default     = true
 }
 
+variable "is_kms_key_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the KMS key and alias for CodeArtifact encryption.
+  When enabled, a dedicated KMS key will be created for encrypting CodeArtifact artifacts
+  and related resources. This key will also be used for S3 bucket encryption if both
+  KMS and S3 features are enabled.
+
+  Default: true (creates KMS key and alias)
+  DESC
+  default     = true
+}
+
+variable "is_log_group_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the CloudWatch Log Group for CodeArtifact audit logs.
+  When enabled, a dedicated log group will be created to store and manage CodeArtifact
+  audit logs with the specified retention period. If KMS encryption is also enabled,
+  the logs will be encrypted using the created KMS key.
+
+  Default: true (creates CloudWatch Log Group)
+  DESC
+  default     = true
+}
+
+variable "is_s3_bucket_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the S3 bucket for CodeArtifact backups and artifacts.
+  When enabled, a dedicated S3 bucket will be created with versioning enabled and
+  public access blocked. If KMS encryption is also enabled, the bucket will use
+  the created KMS key for encryption.
+
+  Default: true (creates S3 bucket)
+  DESC
+  default     = true
+}
+
 ###################################
 # KMS Key Variables 🔐
 ###################################

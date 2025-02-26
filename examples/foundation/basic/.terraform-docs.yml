@@ -1,0 +1,72 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    - resources
+    - providers
+    - requirements
+
+content: |-
+  # Basic AWS CodeArtifact Foundation Example
+
+  ## Overview
+  > **Note:** This example demonstrates the basic usage of the AWS CodeArtifact Foundation module, which sets up the core infrastructure required for AWS CodeArtifact.
+
+  ### 🔑 Key Features
+  - **KMS Encryption**: Creates a KMS key for encrypting CodeArtifact resources
+  - **Audit Logging**: Sets up a CloudWatch Log Group for audit logs
+  - **Artifact Storage**: Provisions an S3 bucket for artifacts and backups
+  - **Security Best Practices**: Implements proper encryption and access controls
+
+  ### 📋 Usage Guidelines
+  1. Initialize the Terraform configuration with `terraform init`
+  2. Validate the configuration with `terraform validate`
+  3. Review the planned changes with `terraform plan`
+  4. Apply the configuration with `terraform apply`
+  5. Clean up resources with `terraform destroy` when no longer needed
+
+  {{ .Header }}
+
+  ## Requirements
+
+  {{ .Requirements }}
+
+  ## Providers
+
+  {{ .Providers }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+  ## Inputs
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
