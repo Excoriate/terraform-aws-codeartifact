@@ -11,6 +11,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 )
 
@@ -28,7 +29,7 @@ func TestKMSKeyCreationAndDeletion(t *testing.T) {
 	kmsClient, _, _ := setupAWSClients(t)
 
 	// Generate a unique key alias for the test
-	keyAlias := generateUniqueResourceName("test-key")
+	keyAlias := helper.GenerateUniqueResourceName("test-key")
 
 	// Get test directory
 	dirs, err := repo.NewTFSourcesDir()
@@ -39,7 +40,7 @@ func TestKMSKeyCreationAndDeletion(t *testing.T) {
 		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
 		Vars: map[string]interface{}{
 			"is_enabled":           true,
-			"domain_name":          generateUniqueResourceName("test-domain"),
+			"domain_name":          helper.GenerateUniqueResourceName("test-domain"),
 			"force_destroy_domain": true,
 			"kms_key_alias":        keyAlias,
 			"enable_key_rotation":  true,
@@ -87,7 +88,7 @@ func TestS3BucketCreationAndDeletion(t *testing.T) {
 	_, s3Client, _ := setupAWSClients(t)
 
 	// Generate a unique bucket name for the test
-	bucketName := generateUniqueResourceName("test-bucket")
+	bucketName := helper.GenerateUniqueResourceName("test-bucket")
 
 	// Get test directory
 	dirs, err := repo.NewTFSourcesDir()
@@ -98,7 +99,7 @@ func TestS3BucketCreationAndDeletion(t *testing.T) {
 		TerraformDir: dirs.GetExamplesDir("foundation/complete"),
 		Vars: map[string]interface{}{
 			"is_enabled":           true,
-			"domain_name":          generateUniqueResourceName("test-domain"),
+			"domain_name":          helper.GenerateUniqueResourceName("test-domain"),
 			"force_destroy_domain": true,
 			"s3_bucket_name":       bucketName,
 			"enable_versioning":    true,
@@ -129,5 +130,5 @@ func TestS3BucketCreationAndDeletion(t *testing.T) {
 	require.Equal(t, types.BucketVersioningStatusEnabled, getBucketVersioningOutput.Status, "Bucket versioning should be enabled")
 
 	// Wait for resource deletion to propagate
-	defer waitForResourceDeletion(t, 5*time.Second)
+	defer helper.WaitForResourceDeletion(t, 5*time.Second)
 }

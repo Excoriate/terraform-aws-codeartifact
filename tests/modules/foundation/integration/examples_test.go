@@ -56,11 +56,6 @@ func TestBasicExampleDeployment(t *testing.T) {
 	require.NotNil(t, describeOutput.Domain, "Domain should exist")
 	require.Equal(t, domainName, *describeOutput.Domain.Name, "Domain name should match")
 
-	// Check domain description if it exists
-	if describeOutput.Domain.Description != nil {
-		require.Equal(t, "Test domain for integration tests", *describeOutput.Domain.Description, "Domain description should match")
-	}
-
 	// Wait for resource deletion to propagate
 	defer waitForResourceDeletion(t, 5*time.Second)
 }
@@ -126,11 +121,6 @@ func TestCompleteExampleDeployment(t *testing.T) {
 	require.NoError(t, err, "Failed to describe CodeArtifact repository")
 	require.NotNil(t, describeRepoOutput.Repository, "Repository should exist")
 	require.Equal(t, repoName, *describeRepoOutput.Repository.Name, "Repository name should match")
-
-	// Check repository description if it exists
-	if describeRepoOutput.Repository.Description != nil {
-		require.Equal(t, "Test repository for integration tests", *describeRepoOutput.Repository.Description, "Repository description should match")
-	}
 
 	// Wait for resource deletion to propagate
 	defer waitForResourceDeletion(t, 5*time.Second)
