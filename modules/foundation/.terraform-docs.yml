@@ -39,6 +39,95 @@ content: |-
      - Server-side encryption using KMS or AES256
      - Public access blocked by default
 
+  ## Default Permissions Overview
+
+  ### KMS Key Default Permissions
+
+  | Principal | Permission Type | Actions | Use Case |
+  |-----------|----------------|----------|-----------|
+  | Root Account | Administrative | `kms:Create*`, `kms:Describe*`, `kms:Enable*`, `kms:List*`, `kms:Put*`, `kms:Update*`, `kms:Revoke*`, `kms:Disable*`, `kms:Get*`, `kms:Delete*`, `kms:ScheduleKeyDeletion`, `kms:CancelKeyDeletion` | Key administration and lifecycle management |
+  | CodeArtifact Service | Encryption Operations | `kms:Decrypt`, `kms:Encrypt`, `kms:GenerateDataKey`, `kms:ReEncrypt*` | Artifact encryption/decryption |
+  | S3 Service | Encryption Operations | `kms:Decrypt`, `kms:GenerateDataKey` | S3 object encryption |
+  | CloudWatch Logs | Encryption Operations | `kms:Encrypt*`, `kms:Decrypt*`, `kms:ReEncrypt*`, `kms:GenerateDataKey*`, `kms:Describe*` | Log data encryption |
+
+  ### S3 Bucket Default Permissions
+
+  | Feature | Default Configuration | Customization Options | Use Case |
+  |---------|---------------------|----------------------|-----------|
+  | Public Access | All public access blocked | Not customizable | Security baseline |
+  | Versioning | Enabled | Not customizable | Data protection |
+  | Default Access | Account owner full access | Customizable via `additional_bucket_policies` or `s3_bucket_policy_override` | Basic operations |
+  | Encryption | SSE-KMS (if KMS enabled) or AES256 | Encryption type fixed, key customizable | Data protection |
+
+  ## Permission Customization
+
+  ### S3 Bucket Policy Customization Options
+
+  | Customization Method | Use Case | Example |
+  |---------------------|-----------|---------|
+  | `additional_bucket_policies` | Add permissions while keeping defaults | Cross-account read access, service integrations |
+  | `s3_bucket_policy_override` | Complete policy replacement | Custom IAM roles, complex access patterns |
+
+  #### Common Use Cases and Policy Templates
+
+  1. **Cross-Account Access**
+  ```hcl
+  additional_bucket_policies = [
+    {
+      sid     = "AllowCrossAccountAccess"
+      effect  = "Allow"
+      actions = ["s3:GetObject", "s3:ListBucket"]
+      principals = {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::ACCOUNT-ID:root"]
+      }
+      resources = ["arn:aws:s3:::BUCKET-NAME/*"]
+    }
+  ]
+  ```
+
+  2. **Service Integration with Conditions**
+  ```hcl
+  additional_bucket_policies = [
+    {
+      sid     = "AllowServiceAccess"
+      effect  = "Allow"
+      actions = ["s3:GetObject"]
+      principals = {
+        type        = "Service"
+        identifiers = ["cloudfront.amazonaws.com"]
+      }
+      resources = ["arn:aws:s3:::BUCKET-NAME/*"]
+      condition = {
+        "StringEquals" = {
+          "AWS:SourceArn" = "arn:aws:cloudfront::ACCOUNT-ID:distribution/DIST-ID"
+        }
+      }
+    }
+  ]
+  ```
+
+  3. **Complete Policy Override Example**
+  ```hcl
+  s3_bucket_policy_override = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowPartnerAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = ["arn:aws:iam::PARTNER-ACCOUNT:role/SPECIFIC-ROLE"]
+        }
+        Action = ["s3:GetObject", "s3:ListBucket", "s3:PutObject"]
+        Resource = [
+          "arn:aws:s3:::BUCKET-NAME",
+          "arn:aws:s3:::BUCKET-NAME/*"
+        ]
+      }
+    ]
+  })
+  ```
+
   ## Features
 
   - **Modular Design**: Each component can be enabled/disabled independently using feature flags (`is_kms_key_enabled`, `is_log_group_enabled`, `is_s3_bucket_enabled`)

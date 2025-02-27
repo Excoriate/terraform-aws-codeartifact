@@ -235,6 +235,55 @@ tf-tests MOD='default' TYPE='unit':
     @echo "🏗️ Running tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/{{TYPE}}..."
     @cd {{TESTS_DIR}}/modules/{{MOD}}/{{TYPE}} && go test -v
 
+# 🐹 Run unit tests locally
+tf-tests-unit MOD='default':
+    @echo "🏗️ Running unit tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go test -v -tags=unit
+
+# 🐹 Run unit read-only tests locally
+tf-tests-unit-ro MOD='default':
+    @echo "🏗️ Running unit read-only tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go test -v -tags="unit readonly"
+
+# 🐹 Run integration tests locally
+tf-tests-integration MOD='default':
+    @echo "🏗️ Running integration tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/integration..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && go test -v -tags=integration
+
+# 📖 Generate documentation for unit tests
+tf-tests-unit-docs MOD='default':
+    @echo "📄 Generating documentation for unit tests in module: {{MOD}}"
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go doc -all > UNIT_TESTS_README.md
+
+# 📖 Generate documentation for integration tests
+tf-tests-integration-docs MOD='default':
+    @echo "📄 Generating documentation for integration tests in module: {{MOD}}"
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && go doc -all > INTEGRATION_TESTS_README.md
+
+# 📋 Create cheat sheet for unit tests
+tf-tests-unit-cheatsheet MOD='default':
+    @echo "📋 Creating cheat sheet for unit tests in module: {{MOD}}"
+    @echo "# Unit Tests Cheat Sheet for Module: {{MOD}}" > {{TESTS_DIR}}/modules/{{MOD}}/unit/CHEATSHEET.md
+    @echo "\n## Available Test Functions" >> {{TESTS_DIR}}/modules/{{MOD}}/unit/CHEATSHEET.md
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go test -list . >> {{TESTS_DIR}}/modules/{{MOD}}/unit/CHEATSHEET.md
+
+# 📋 Create cheat sheet for integration tests
+tf-tests-integration-cheatsheet MOD='default':
+    @echo "📋 Creating cheat sheet for integration tests in module: {{MOD}}"
+    @echo "# Integration Tests Cheat Sheet for Module: {{MOD}}" > {{TESTS_DIR}}/modules/{{MOD}}/integration/CHEATSHEET.md
+    @echo "\n## Available Test Functions" >> {{TESTS_DIR}}/modules/{{MOD}}/integration/CHEATSHEET.md
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && go test -list . >> {{TESTS_DIR}}/modules/{{MOD}}/integration/CHEATSHEET.md
+
+# 🌐 Comprehensive test suite with documentation and cheat sheets
+tf-tests-full MOD='default':
+    @just tf-tests-unit {{MOD}}
+    @just tf-tests-unit-ro {{MOD}}
+    @just tf-tests-integration {{MOD}}
+    @just tf-tests-unit-docs {{MOD}}
+    @just tf-tests-integration-docs {{MOD}}
+    @just tf-tests-unit-cheatsheet {{MOD}}
+    @just tf-tests-integration-cheatsheet {{MOD}}
+
 # 🌿 Run tests for Terraform module in Nix development environment
 tf-tests-nix MOD='default' TYPE='unit':
     @echo "🏗️ Running tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/{{TYPE}} in Nix environment..."
@@ -409,3 +458,43 @@ tf-dev-nix MOD='default' EXAMPLE='basic':
     @just tf-ci-static-nix "{{MOD}}"
     @just tf-cmd-nix "{{MOD}}" 'init'
     @just tf-exec-nix "examples/{{MOD}}/{{EXAMPLE}}" 'init'
+
+# 🐹 Run unit tests in Nix development environment
+tf-tests-unit-nix MOD='default':
+    @echo "🏗️ Running unit tests for Terraform module in Nix environment: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && nix develop . --impure --extra-experimental-features nix-command --extra-experimental-features flakes --command go test -v -tags=unit
+
+# 🐹 Run unit tests locally
+tf-tests-unit MOD='default':
+    @echo "🏗️ Running unit tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go test -v -tags=unit
+
+# 🐹 Run unit read-only tests in Nix development environment
+tf-tests-unit-ro-nix MOD='default':
+    @echo "🏗️ Running unit read-only tests for Terraform module in Nix environment: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && nix develop . --impure --extra-experimental-features nix-command --extra-experimental-features flakes --command go test -v -tags="unit readonly"
+
+# 🐹 Run unit read-only tests locally
+tf-tests-unit-ro MOD='default':
+    @echo "🏗️ Running unit read-only tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/unit..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && go test -v -tags="unit readonly"
+
+# 🐹 Run integration tests in Nix development environment
+tf-tests-integration-nix MOD='default':
+    @echo "🏗️ Running integration tests for Terraform module in Nix environment: {{TESTS_DIR}}/modules/{{MOD}}/integration..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && nix develop . --impure --extra-experimental-features nix-command --extra-experimental-features flakes --command go test -v -tags=integration
+
+# 🐹 Run integration tests locally
+tf-tests-integration MOD='default':
+    @echo "🏗️ Running integration tests for Terraform module: {{TESTS_DIR}}/modules/{{MOD}}/integration..."
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && go test -v -tags=integration
+
+# 📖 Generate documentation for unit tests in Nix environment
+tf-tests-unit-docs-nix MOD='default':
+    @echo "📄 Generating documentation for unit tests in module in Nix environment: {{MOD}}"
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/unit && nix develop . --impure --extra-experimental-features nix-command --extra-experimental-features flakes --command bash -c 'go doc -all > UNIT_TESTS_README.md'
+
+# 📖 Generate documentation for integration tests in Nix environment
+tf-tests-integration-docs-nix MOD='default':
+    @echo "📄 Generating documentation for integration tests in module in Nix environment: {{MOD}}"
+    @cd {{TESTS_DIR}}/modules/{{MOD}}/integration && nix develop . --impure --extra-experimental-features nix-command --extra-experimental-features flakes --command bash -c 'go doc -all > INTEGRATION_TESTS_README.md'

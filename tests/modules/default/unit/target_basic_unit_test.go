@@ -1,3 +1,5 @@
+//go:build unit
+
 package unit
 
 import (
@@ -8,8 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBasicModuleConfiguration verifies the basic configuration of the module
-func TestBasicModuleConfiguration(t *testing.T) {
+// TestConfigurationOnTargetWhenModuleEnabled verifies the basic configuration of the module
+// when it is explicitly enabled, ensuring resources are properly planned.
+func TestConfigurationOnTargetWhenModuleEnabled(t *testing.T) {
 	// Enable parallel test execution
 	t.Parallel()
 
@@ -19,7 +22,7 @@ func TestBasicModuleConfiguration(t *testing.T) {
 
 	// Prepare Terraform options for basic configuration
 	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetModulesDir("default"),
+		TerraformDir: dirs.GetTargetDir("default/basic"),
 		Vars: map[string]interface{}{
 			"is_enabled": true,
 		},
@@ -42,8 +45,9 @@ func TestBasicModuleConfiguration(t *testing.T) {
 	// This could include checking for specific resource creation or configuration
 }
 
-// TestModuleDisabledConfiguration verifies the module behaves correctly when disabled
-func TestModuleDisabledConfiguration(t *testing.T) {
+// TestConfigurationOnTargetWhenModuleDisabled verifies the module behaves correctly when disabled
+// ensuring no resources are planned for creation.
+func TestConfigurationOnTargetWhenModuleDisabled(t *testing.T) {
 	// Enable parallel test execution
 	t.Parallel()
 
@@ -53,7 +57,7 @@ func TestModuleDisabledConfiguration(t *testing.T) {
 
 	// Prepare Terraform options with module disabled
 	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetModulesDir("default"),
+		TerraformDir: dirs.GetTargetDir("default/basic"),
 		Vars: map[string]interface{}{
 			"is_enabled": false,
 		},

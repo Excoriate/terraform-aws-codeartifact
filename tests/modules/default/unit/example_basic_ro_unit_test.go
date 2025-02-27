@@ -1,3 +1,5 @@
+//go:build unit && readonly
+
 package unit
 
 import (
@@ -8,8 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSanityChecksOnModule(t *testing.T) {
-	// Parallel execution with unique test names
+// TestValidationOnExamplesWhenBasicConfigurationLoaded ensures that the basic example
+// configuration passes Terraform validation checks, verifying its structural integrity.
+func TestValidationOnExamplesWhenBasicConfigurationLoaded(t *testing.T) {
 	t.Parallel()
 
 	dirs, err := repo.NewTFSourcesDir()
@@ -17,7 +20,7 @@ func TestSanityChecksOnModule(t *testing.T) {
 
 	// Enhanced Terraform options with logging and upgrade
 	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetModulesDir("default"),
+		TerraformDir: dirs.GetExamplesDir("default/basic"),
 		Upgrade:      true,
 	}
 
@@ -33,4 +36,9 @@ func TestSanityChecksOnModule(t *testing.T) {
 	validateOutput, err := terraform.ValidateE(t, terraformOptions)
 	require.NoError(t, err, "Terraform validate failed")
 	t.Log("✅ Terraform Validate Output:\n", validateOutput)
+
+	// Run terraform fmt check
+	fmtOutput, err := terraform.RunTerraformCommandAndGetStdoutE(t, terraformOptions, "fmt", "-recursive", "-check")
+	require.NoError(t, err, "Terraform fmt failed")
+	t.Log("✅ Terraform fmt Output:\n", fmtOutput)
 }

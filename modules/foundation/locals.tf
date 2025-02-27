@@ -23,7 +23,7 @@ locals {
   #
   ###################################
   kms_key_description = "KMS key for CodeArtifact encryption and backup"
-  kms_key_policy = jsonencode({
+  kms_key_policy = coalesce(var.kms_key_policy, jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
@@ -90,7 +90,7 @@ locals {
         Resource = "*"
       }
     ]
-  })
+  }))
 
   ###################################
   # Tags 🏷️
@@ -106,4 +106,46 @@ locals {
       "ManagedBy"  = "terraform"
     }
   )
+
+  # S3 bucket name configuration
+  bucket_name = var.bucket_name != null ? var.bucket_name : "codeartifact-${data.aws_caller_identity.current.account_id}"
+
+  # S3 bucket policy configuration
+  default_bucket_policy_statement = {
+    sid       = "AllowDefaultAccess"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:ListBucket"]
+    principals = {
+      type        = "AWS"
+      identifiers = [data.aws_caller_identity.current.account_id]
+    }
+    resources = [
+      "arn:aws:s3:::${local.bucket_name}",
+      "arn:aws:s3:::${local.bucket_name}/*"
+    ]
+  }
+
+  # Combine default and additional policies if no override is provided
+  bucket_policy_statements = var.s3_bucket_policy_override == null ? concat(
+    [local.default_bucket_policy_statement],
+    var.additional_bucket_policies
+  ) : null
+
+  # Generate the final bucket policy
+  bucket_policy = var.s3_bucket_policy_override != null ? var.s3_bucket_policy_override : jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      for statement in local.bucket_policy_statements : {
+        Sid       = statement.sid
+        Effect    = statement.effect
+        Principal = statement.principals
+        Action    = statement.actions
+        Resource  = statement.resources
+        Condition = statement.condition != null ? statement.condition : null
+      }
+    ]
+  })
+
+  # Feature flags for bucket policy
+  is_bucket_policy_enabled = var.is_enabled && (var.s3_bucket_policy_override != null || length(var.additional_bucket_policies) > 0)
 }

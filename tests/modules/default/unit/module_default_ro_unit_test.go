@@ -1,20 +1,18 @@
-//go:build unit
+//go:build unit && readonly
 
-package test
+package unit
 
 import (
 	"testing"
 
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
-
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 )
 
-// TestSanityChecksOnFoundationModule verifies that the foundation module
-// behaves correctly during initialization and validation. It confirms that
-// the module can be properly initialized and passes validation checks.
-func TestSanityChecksOnFoundationModule(t *testing.T) {
+// TestInitializationOnModuleWhenUpgradeEnabled verifies that the Terraform module can be successfully initialized
+// with upgrade enabled, ensuring compatibility and readiness for deployment.
+func TestInitializationOnModuleWhenUpgradeEnabled(t *testing.T) {
 	// Parallel execution with unique test names
 	t.Parallel()
 
@@ -23,7 +21,7 @@ func TestSanityChecksOnFoundationModule(t *testing.T) {
 
 	// Enhanced Terraform options with logging and upgrade
 	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetModulesDir("foundation"),
+		TerraformDir: dirs.GetModulesDir("default"),
 		Upgrade:      true,
 	}
 

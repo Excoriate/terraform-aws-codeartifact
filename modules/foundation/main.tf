@@ -114,3 +114,10 @@ resource "aws_s3_bucket_public_access_block" "this" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+resource "aws_s3_bucket_policy" "this" {
+  count = local.is_bucket_policy_enabled ? 1 : 0
+
+  bucket = aws_s3_bucket.this[0].id
+  policy = local.bucket_policy
+}

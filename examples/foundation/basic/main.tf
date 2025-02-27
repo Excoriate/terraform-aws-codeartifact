@@ -17,6 +17,34 @@ module "this" {
   is_kms_key_enabled    = true
   kms_key_deletion_window = 7
   kms_key_alias         = "alias/codeartifact-encryption"
+  # Optional: Uncomment to provide a custom KMS key policy
+  # kms_key_policy = jsonencode({
+  #   Version = "2012-10-17"
+  #   Statement = [
+  #     {
+  #       Sid    = "Enable Limited IAM Root User Permissions"
+  #       Effect = "Allow"
+  #       Principal = {
+  #         AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+  #       }
+  #       Action = [
+  #         "kms:Create*",
+  #         "kms:Describe*",
+  #         "kms:Enable*",
+  #         "kms:List*",
+  #         "kms:Put*",
+  #         "kms:Update*",
+  #         "kms:Revoke*",
+  #         "kms:Disable*",
+  #         "kms:Get*",
+  #         "kms:Delete*",
+  #         "kms:ScheduleKeyDeletion",
+  #         "kms:CancelKeyDeletion"
+  #       ]
+  #       Resource = "*"
+  #     }
+  #   ]
+  # })
 
   # CloudWatch Log Group configuration
   is_log_group_enabled    = true

@@ -1,4 +1,6 @@
-package integration
+//go:build integration
+
+package test
 
 import (
 	"context"
