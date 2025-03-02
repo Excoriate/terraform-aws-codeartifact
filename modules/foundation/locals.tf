@@ -10,8 +10,8 @@ locals {
   # 4. `is_s3_bucket_enabled` - Flag to control S3 bucket creation
   #
   ###################################
-  is_enabled = var.is_enabled
-  is_kms_key_enabled = var.is_enabled && var.is_kms_key_enabled
+  is_enabled           = var.is_enabled
+  is_kms_key_enabled   = var.is_enabled && var.is_kms_key_enabled
   is_log_group_enabled = var.is_enabled && var.is_log_group_enabled
   is_s3_bucket_enabled = var.is_enabled && var.is_s3_bucket_enabled
 
@@ -102,8 +102,8 @@ locals {
   common_tags = merge(
     var.tags,
     {
-      "Module"     = "terraform-aws-codeartifact-foundation"
-      "ManagedBy"  = "terraform"
+      "Module"    = "terraform-aws-codeartifact-foundation"
+      "ManagedBy" = "terraform"
     }
   )
 
@@ -112,9 +112,9 @@ locals {
 
   # S3 bucket policy configuration
   default_bucket_policy_statement = {
-    sid       = "AllowDefaultAccess"
-    effect    = "Allow"
-    actions   = ["s3:GetObject", "s3:ListBucket"]
+    sid     = "AllowDefaultAccess"
+    effect  = "Allow"
+    actions = ["s3:GetObject", "s3:ListBucket"]
     principals = {
       type        = "AWS"
       identifiers = [data.aws_caller_identity.current.account_id]

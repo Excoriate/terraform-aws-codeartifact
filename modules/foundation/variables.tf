@@ -195,9 +195,9 @@ variable "s3_bucket_policy_override" {
 
 variable "additional_bucket_policies" {
   type = list(object({
-    sid       = string
-    effect    = string
-    actions   = list(string)
+    sid     = string
+    effect  = string
+    actions = list(string)
     principals = object({
       type        = string
       identifiers = list(string)
