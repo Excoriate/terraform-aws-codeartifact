@@ -135,14 +135,17 @@ locals {
   bucket_policy = var.s3_bucket_policy_override != null ? var.s3_bucket_policy_override : jsonencode({
     Version = "2012-10-17"
     Statement = [
-      for statement in local.bucket_policy_statements : {
-        Sid       = statement.sid
-        Effect    = statement.effect
-        Principal = statement.principals
-        Action    = statement.actions
-        Resource  = statement.resources
-        Condition = statement.condition != null ? statement.condition : null
-      }
+      for statement in local.bucket_policy_statements : merge(
+        {
+          Sid       = statement.sid
+          Effect    = statement.effect
+          Principal = statement.principals
+          Action    = statement.actions
+          Resource  = statement.resources
+        },
+        # Only include Condition if it exists in the statement
+        try({ Condition = statement.condition }, {})
+      )
     ]
   })
 
