@@ -5,7 +5,7 @@ package unit
 import (
 	"testing"
 
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
+	"github.com/Excoriate/terraform-registry-module-template/tests/pkg/repo"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
@@ -13,19 +13,36 @@ import (
 // TestInitializationOnModuleWhenUpgradeEnabled verifies that the Terraform module can be successfully initialized
 // with upgrade enabled, ensuring compatibility and readiness for deployment.
 func TestInitializationOnModuleWhenUpgradeEnabled(t *testing.T) {
-	// Parallel execution with unique test names
 	t.Parallel()
 
 	dirs, err := repo.NewTFSourcesDir()
 	require.NoError(t, err, "Failed to get Terraform sources directory")
 
-	// Enhanced Terraform options with logging and upgrade
 	terraformOptions := &terraform.Options{
 		TerraformDir: dirs.GetModulesDir("default"),
 		Upgrade:      true,
 	}
 
-	// Detailed logging of module directory
+	t.Logf("🔍 Terraform Module Directory: %s", terraformOptions.TerraformDir)
+
+	initOutput, err := terraform.InitE(t, terraformOptions)
+	require.NoError(t, err, "Terraform init failed")
+	t.Log("✅ Terraform Init Output:\n", initOutput)
+}
+
+// TestValidationOnModuleWhenBasicConfiguration ensures that the module
+// passes Terraform validation checks, verifying its structural integrity.
+func TestValidationOnModuleWhenBasicConfiguration(t *testing.T) {
+	t.Parallel()
+
+	dirs, err := repo.NewTFSourcesDir()
+	require.NoError(t, err, "Failed to get Terraform sources directory")
+
+	terraformOptions := &terraform.Options{
+		TerraformDir: dirs.GetModulesDir("default"),
+		Upgrade:      true,
+	}
+
 	t.Logf("🔍 Terraform Module Directory: %s", terraformOptions.TerraformDir)
 
 	// Initialize with detailed error handling
