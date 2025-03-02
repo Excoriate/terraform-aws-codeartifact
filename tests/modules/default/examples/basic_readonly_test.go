@@ -8,7 +8,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Excoriate/terraform-registry-module-template/tests/pkg/repo"
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 )
 
 // TestInitializationOnBasicExampleWhenModuleEnabled verifies that the basic example
