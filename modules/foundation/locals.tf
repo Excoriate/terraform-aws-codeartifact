@@ -11,9 +11,9 @@ locals {
   #
   ###################################
   is_enabled           = var.is_enabled
-  is_kms_key_enabled   = var.is_enabled && var.is_kms_key_enabled
-  is_log_group_enabled = var.is_enabled && var.is_log_group_enabled
-  is_s3_bucket_enabled = var.is_enabled && var.is_s3_bucket_enabled
+  is_kms_key_enabled   = local.is_enabled && var.is_kms_key_enabled
+  is_log_group_enabled = local.is_enabled && var.is_log_group_enabled
+  is_s3_bucket_enabled = local.is_enabled && var.is_s3_bucket_enabled
 
   ###################################
   # Resource Naming 🏷️
