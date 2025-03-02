@@ -47,33 +47,40 @@ By default, all features are enabled when `is_enabled = true`. You can disable s
 
 ## Testing with Fixtures
 
-This example includes two fixtures for testing:
+This example includes several fixtures for testing different configurations:
 
-1. **default.tfvars** - Enables the module with default settings
-2. **disabled.tfvars** - Disables the module completely
+1. **default.tfvars** - Enables all module components
+2. **disabled.tfvars** - Disables the entire module
+3. **kms-disabled.tfvars** - Disables only the KMS key component
+4. **s3-disabled.tfvars** - Disables only the S3 bucket component
+5. **logs-disabled.tfvars** - Disables only the CloudWatch Logs component
+
+These fixtures demonstrate the module's flexibility, allowing you to selectively enable or disable components as needed for your specific use case.
 
 ### Using Makefile
 
-A Makefile is provided for easier testing. You can use the following commands:
+A Makefile is provided for easier testing. Here are some of the available commands:
 
 ```bash
-# Show available commands
+# Show all available commands
 make help
 
-# Plan with module enabled
-make plan-default
+# Plan commands
+make plan-default         # Plan with all components enabled
+make plan-disabled        # Plan with module entirely disabled
+make plan-kms-disabled    # Plan with KMS key component disabled
+make plan-s3-disabled     # Plan with S3 bucket component disabled
+make plan-logs-disabled   # Plan with CloudWatch logs component disabled
 
-# Plan with module disabled
-make plan-disabled
+# Full lifecycle commands (plan, apply, destroy)
+make cycle-default        # Run full cycle with all components enabled
+make cycle-disabled       # Run full cycle with module entirely disabled
+make cycle-kms-disabled   # Run full cycle with KMS key component disabled
+make cycle-s3-disabled    # Run full cycle with S3 bucket component disabled
+make cycle-logs-disabled  # Run full cycle with CloudWatch logs component disabled
 
-# Full cycle (plan, apply, destroy) with module enabled
-make cycle-default
-
-# Full cycle (plan, apply, destroy) with module disabled
-make cycle-disabled
-
-# Clean up Terraform files
-make clean
+# Cleanup command
+make clean                # Remove .terraform directory and Terraform state files
 ```
 
 ### Manual Testing
@@ -81,11 +88,19 @@ make clean
 If you prefer to run Terraform commands directly:
 
 ```bash
-# Test with default configuration
+# Initialize Terraform
+terraform init
+
+# Test with all components enabled
 terraform apply -var-file=fixtures/default.tfvars
 
-# Test with module disabled
+# Test with entire module disabled
 terraform apply -var-file=fixtures/disabled.tfvars
+
+# Test with specific components disabled
+terraform apply -var-file=fixtures/kms-disabled.tfvars
+terraform apply -var-file=fixtures/s3-disabled.tfvars
+terraform apply -var-file=fixtures/logs-disabled.tfvars
 ```
 
 <!-- BEGIN_TF_DOCS -->

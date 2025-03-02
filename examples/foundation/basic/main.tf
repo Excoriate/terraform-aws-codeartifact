@@ -1,7 +1,11 @@
 module "this" {
   source = "../../../modules/foundation"
 
-  is_enabled = var.is_enabled
+  # Feature flags
+  is_enabled           = var.is_enabled
+  is_kms_key_enabled   = var.is_kms_key_enabled
+  is_log_group_enabled = var.is_log_group_enabled
+  is_s3_bucket_enabled = var.is_s3_bucket_enabled
 
   # KMS configuration
   kms_key_deletion_window = var.kms_deletion_window_in_days

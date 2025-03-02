@@ -8,6 +8,30 @@ variable "is_enabled" {
   default     = true
 }
 
+###################################
+# Feature Flags
+###################################
+variable "is_kms_key_enabled" {
+  type        = bool
+  description = "Controls whether to create the KMS key and alias for CodeArtifact encryption."
+  default     = true
+}
+
+variable "is_log_group_enabled" {
+  type        = bool
+  description = "Controls whether to create the CloudWatch Log Group for CodeArtifact audit logs."
+  default     = true
+}
+
+variable "is_s3_bucket_enabled" {
+  type        = bool
+  description = "Controls whether to create the S3 bucket for CodeArtifact backups and artifacts."
+  default     = true
+}
+
+###################################
+# Common Variables
+###################################
 variable "aws_region" {
   type        = string
   description = "AWS region where resources will be created."
