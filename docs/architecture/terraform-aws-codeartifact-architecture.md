@@ -14,17 +14,17 @@ graph TD
         E --> F[CI/CD Integration - Core]
         F --> G[Monitoring - Basic]
     end
-    
+
     subgraph "Future Phases"
         E -.-> H[Advanced Self-Service]
         F -.-> I[Cross-Account Publishing]
         G -.-> J[Advanced Analytics]
         C -.-> K[Custom Repository Workflows]
     end
-    
+
     classDef mvp fill:#d0f0c0,stroke:#000,stroke-width:1px;
     classDef future fill:#f0e0d0,stroke:#000,stroke-width:1px,stroke-dasharray: 5 5;
-    
+
     class A,B,C,D,E,F,G mvp;
     class H,I,J,K future;
 ```
@@ -56,7 +56,7 @@ graph TB
             CloudTrail[CloudTrail]
             LogGroups[CloudWatch Log Groups]
         end
-        
+
         subgraph "CodeArtifact Core"
             Domain[CodeArtifact Domain]
             InternalRepos[Internal Repositories]
@@ -64,21 +64,21 @@ graph TB
             GroupRepos[Group Repositories]
             ExtConnections[External Connections]
         end
-        
+
         subgraph "Security & Access"
             IAM[IAM Roles & Policies]
             ResourcePolicies[Resource Policies]
             TokenGenerator[Auth Token Generator]
             CrossAccountRoles[Cross-Account Roles]
         end
-        
+
         subgraph "Automation & Integration"
             ApiGateway[API Gateway]
             Lambdas[Lambda Functions]
             StepFunctions[Step Functions]
             EventBridge[EventBridge Rules]
         end
-        
+
         subgraph "Monitoring & Analytics"
             Dashboards[CloudWatch Dashboards]
             Alarms[CloudWatch Alarms]
@@ -86,37 +86,37 @@ graph TB
             SNS[SNS Topics]
         end
     end
-    
+
     subgraph "Developer Tooling"
         CICD[CI/CD Pipelines]
         BuildTools[Build Tools]
         IDEPlugins[IDE Plugins]
     end
-    
+
     subgraph "Cross-Account Access"
         ExternalTeamAccount[Team A AWS Account]
         PartnerAccount[Partner AWS Account]
     end
-    
+
     KMS --> Domain
     Domain --> InternalRepos & ProxyRepos & GroupRepos
     ProxyRepos --> ExtConnections
     ExtConnections -.-> Internet((Public Repositories))
-    
+
     IAM --> Domain
     IAM --> InternalRepos
     IAM --> ProxyRepos
     IAM --> GroupRepos
-    
+
     ResourcePolicies --> Domain
     ResourcePolicies --> InternalRepos
     ResourcePolicies --> ProxyRepos
     ResourcePolicies --> GroupRepos
-    
+
     TokenGenerator --> IAM
     CrossAccountRoles --> ExternalTeamAccount
     CrossAccountRoles --> PartnerAccount
-    
+
     ApiGateway --> Lambdas
     Lambdas --> InternalRepos
     Lambdas --> ProxyRepos
@@ -125,26 +125,26 @@ graph TB
     StepFunctions --> Lambdas
     EventBridge --> Lambdas
     EventBridge --> StepFunctions
-    
+
     Dashboards --> Metrics
     Alarms --> Metrics
     Alarms --> SNS
-    
+
     CICD --> TokenGenerator
     CICD --> InternalRepos
     BuildTools --> TokenGenerator
     IDEPlugins --> TokenGenerator
-    
+
     ExternalTeamAccount --> CrossAccountRoles
     PartnerAccount --> CrossAccountRoles
-    
+
     CloudTrail --> S3
     CloudTrail --> LogGroups
-    
+
     classDef awsService fill:#FF9900,stroke:#232F3E,color:#232F3E;
     classDef resourceGroup fill:#E7E7E7,stroke:#666666;
     classDef external fill:#3F8624,stroke:#294E1A,color:white;
-    
+
     class KMS,S3,CloudTrail,LogGroups,Domain,InternalRepos,ProxyRepos,GroupRepos,ExtConnections,IAM,ResourcePolicies,TokenGenerator,CrossAccountRoles,ApiGateway,Lambdas,StepFunctions,EventBridge,Dashboards,Alarms,Metrics,SNS awsService;
     class CICD,BuildTools,IDEPlugins,ExternalTeamAccount,PartnerAccount external;
     class "Foundation Infrastructure","CodeArtifact Core","Security & Access","Automation & Integration","Monitoring & Analytics","Developer Tooling","Cross-Account Access" resourceGroup;
@@ -199,7 +199,7 @@ inputs = {
       allowed_repositories = ["dev-*"]
     }
   }
-  
+
   token_policies = {
     max_token_duration  = 12 # hours
     require_mfa         = true
@@ -268,7 +268,7 @@ dependency "dev_repositories" {
 
 inputs = {
   environment = "staging"
-  
+
   promotion_sources = {
     dev = {
       source_repositories = dependency.dev_repositories.outputs.repository_arns
@@ -310,7 +310,7 @@ include {
 
 inputs = {
   self_service_enabled = true
-  
+
   repository_templates = {
     maven_template = {
       description = "Standard Maven repository template"
@@ -323,7 +323,7 @@ inputs = {
       allowed_teams = ["all"]
       max_per_team  = 5
     }
-    
+
     npm_template = {
       description = "Standard npm repository template"
       format      = "npm"
@@ -336,7 +336,7 @@ inputs = {
       max_per_team  = 5
     }
   }
-  
+
   approval_workflow = {
     enabled     = true
     approvers   = ["TeamManager", "SecurityReviewer"]
@@ -372,7 +372,7 @@ terraform-aws-codeartifact/ (root)
 │   ├── security.hcl                     # MVP Core ✅
 │   ├── cicd.hcl                         # MVP Core ✅
 │   └── monitoring.hcl                   # MVP Basic ✅
-│   
+│
 ├── dev/                                 # Development environment - MVP ✅
 │   ├── env.hcl                          # Environment variables
 │   ├── foundation/
@@ -413,7 +413,7 @@ sequenceDiagram
     participant STS as AWS STS
     participant Token as Token Generator
     participant CA as CodeArtifact
-    
+
     EA->>CAR: 1. Assume Role Request
     CAR->>STS: 2. Generate Temporary Credentials
     STS-->>EA: 3. Return Temporary Credentials
