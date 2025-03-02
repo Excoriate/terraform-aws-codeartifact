@@ -52,7 +52,33 @@ This example includes two fixtures for testing:
 1. **default.tfvars** - Enables the module with default settings
 2. **disabled.tfvars** - Disables the module completely
 
-To test with these fixtures, run:
+### Using Makefile
+
+A Makefile is provided for easier testing. You can use the following commands:
+
+```bash
+# Show available commands
+make help
+
+# Plan with module enabled
+make plan-default
+
+# Plan with module disabled
+make plan-disabled
+
+# Full cycle (plan, apply, destroy) with module enabled
+make cycle-default
+
+# Full cycle (plan, apply, destroy) with module disabled
+make cycle-disabled
+
+# Clean up Terraform files
+make clean
+```
+
+### Manual Testing
+
+If you prefer to run Terraform commands directly:
 
 ```bash
 # Test with default configuration
