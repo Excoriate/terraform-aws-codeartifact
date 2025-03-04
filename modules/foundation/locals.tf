@@ -22,7 +22,11 @@ locals {
   # Standardized naming for resources created by this module
   #
   ###################################
-  kms_key_description = "KMS key for CodeArtifact encryption and backup"
+  # CodeArtifact domain name for resource naming
+  codeartifact_domain_name = var.codeartifact_domain_name
+
+  # KMS key naming and description
+  kms_key_description = "KMS key for CodeArtifact ${local.codeartifact_domain_name} domain encryption and backup"
   kms_key_policy = coalesce(var.kms_key_policy, jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -107,8 +111,8 @@ locals {
     }
   )
 
-  # S3 bucket name configuration
-  bucket_name = var.bucket_name != null ? var.bucket_name : "codeartifact-${data.aws_caller_identity.current.account_id}"
+  # S3 bucket name configuration with domain name integration
+  bucket_name = var.bucket_name != null ? var.bucket_name : "codeartifact-${local.codeartifact_domain_name}-${data.aws_caller_identity.current.account_id}"
 
   # S3 bucket policy configuration
   default_bucket_policy_statement = {
@@ -148,6 +152,9 @@ locals {
       )
     ]
   })
+
+  # Default CloudWatch log group name using the domain name
+  default_log_group_name = "/aws/codeartifact/${local.codeartifact_domain_name}/audit-logs"
 
   # Feature flags for bucket policy
   is_bucket_policy_enabled = var.is_enabled && (var.s3_bucket_policy_override != null || length(var.additional_bucket_policies) > 0)

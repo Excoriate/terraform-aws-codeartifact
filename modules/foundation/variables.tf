@@ -254,6 +254,14 @@ variable "bucket_name" {
   }
 }
 
+variable "codeartifact_domain_name" {
+  type        = string
+  default     = "awsca-default"
+  description = <<-DESC
+  The name of the CodeArtifact domain to create. If it's not set, it'll default to 'awsca-default'.
+  DESC
+}
+
 ###################################
 # Common Tags Variables 🏷️
 ###################################
@@ -262,3 +270,4 @@ variable "tags" {
   description = "A map of tags to assign to all resources created by this module. These tags will be applied to all resources that support tagging, helping with resource organization, cost allocation, and access control. Tags should follow your organization's tagging strategy and might include values for environment, project, owner, or other relevant categories."
   default     = {}
 }
+

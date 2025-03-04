@@ -19,6 +19,9 @@ module "this" {
   log_group_name           = var.log_group_name
   log_group_retention_days = var.log_retention_days
 
+  # CodeArtifact domain configuration
+  codeartifact_domain_name = var.codeartifact_domain_name
+
   tags = {
     Environment = var.environment
     Project     = "terraform-aws-codeartifact"

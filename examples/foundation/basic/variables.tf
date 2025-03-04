@@ -94,3 +94,12 @@ variable "log_retention_days" {
   description = "Number of days to retain CloudWatch logs."
   default     = 30
 }
+
+###################################
+# CodeArtifact Domain Configuration
+###################################
+variable "codeartifact_domain_name" {
+  type        = string
+  description = "The name of the CodeArtifact domain to create. This provides a consistent naming convention for resources."
+  default     = "example-domain"
+}
