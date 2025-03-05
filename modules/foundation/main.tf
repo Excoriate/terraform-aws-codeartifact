@@ -26,8 +26,8 @@ resource "aws_kms_key" "this" {
   tags = merge(
     local.common_tags,
     {
-      Name        = "codeartifact-${local.codeartifact_domain_name}-encryption-key"
-      DomainName  = local.codeartifact_domain_name
+      Name       = "codeartifact-${local.codeartifact_domain_name}-encryption-key"
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
@@ -56,8 +56,8 @@ resource "aws_cloudwatch_log_group" "this" {
   tags = merge(
     local.common_tags,
     {
-      Name        = coalesce(var.log_group_name, local.default_log_group_name)
-      DomainName  = local.codeartifact_domain_name
+      Name       = coalesce(var.log_group_name, local.default_log_group_name)
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
@@ -79,8 +79,8 @@ resource "aws_s3_bucket" "this" {
   tags = merge(
     local.common_tags,
     {
-      Name        = coalesce(var.s3_bucket_name, local.bucket_name)
-      DomainName  = local.codeartifact_domain_name
+      Name       = coalesce(var.s3_bucket_name, local.bucket_name)
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
