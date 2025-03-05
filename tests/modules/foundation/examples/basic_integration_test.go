@@ -1,18 +1,19 @@
-//go:build integration,examples
+//go:build integration && examples
 
 package examples
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,27 +53,26 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 	s3BucketId := terraform.Output(t, terraformOptions, "s3_bucket_id")
 	logGroupName := terraform.Output(t, terraformOptions, "log_group_name")
 
-	// Setup AWS session
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
-	require.NoError(t, err, "Failed to create AWS session")
+	// Setup AWS SDK v2 configuration with explicit region
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
+	require.NoError(t, err, "Failed to load AWS configuration")
 
 	// Verify KMS Key
 	t.Run("Verify KMS Key", func(t *testing.T) {
-		kmsClient := kms.New(sess)
+		kmsClient := kms.NewFromConfig(cfg)
 
 		// Verify KMS Key exists
-		describeKeyOutput, err := kmsClient.DescribeKey(&kms.DescribeKeyInput{
+		describeKeyOutput, err := kmsClient.DescribeKey(ctx, &kms.DescribeKeyInput{
 			KeyId: aws.String(kmsKeyId),
 		})
 		require.NoError(t, err, "Failed to describe KMS key")
 
-		assert.Equal(t, kmsKeyArn, *describeKeyOutput.KeyMetadata.Arn, "KMS Key ARN mismatch")
-		assert.Equal(t, "ENABLED", *describeKeyOutput.KeyMetadata.KeyState, "KMS Key should be enabled")
+		assert.Equal(t, kmsKeyArn, *describeKeyOutput.KeyMetadata.ARN, "KMS Key ARN mismatch")
+		assert.Equal(t, "Enabled", string(describeKeyOutput.KeyMetadata.KeyState), "KMS Key should be enabled")
 
 		// Verify KMS Key Alias
-		listAliasesOutput, err := kmsClient.ListAliases(&kms.ListAliasesInput{
+		listAliasesOutput, err := kmsClient.ListAliases(ctx, &kms.ListAliasesInput{
 			KeyId: aws.String(kmsKeyId),
 		})
 		require.NoError(t, err, "Failed to list KMS key aliases")
@@ -89,16 +89,16 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 
 	// Verify S3 Bucket
 	t.Run("Verify S3 Bucket", func(t *testing.T) {
-		s3Client := s3.New(sess)
+		s3Client := s3.NewFromConfig(cfg)
 
 		// Verify S3 Bucket exists
-		_, err := s3Client.HeadBucket(&s3.HeadBucketInput{
+		_, err := s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 			Bucket: aws.String(s3BucketId),
 		})
 		require.NoError(t, err, "Failed to head S3 bucket")
 
 		// Get bucket encryption
-		getBucketEncryptionOutput, err := s3Client.GetBucketEncryption(&s3.GetBucketEncryptionInput{
+		getBucketEncryptionOutput, err := s3Client.GetBucketEncryption(ctx, &s3.GetBucketEncryptionInput{
 			Bucket: aws.String(s3BucketId),
 		})
 		require.NoError(t, err, "Failed to get S3 bucket encryption")
@@ -121,16 +121,16 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 
 	// Verify CloudWatch Log Group
 	t.Run("Verify CloudWatch Log Group", func(t *testing.T) {
-		cwlClient := cloudwatchlogs.New(sess)
+		cwlClient := cloudwatchlogs.NewFromConfig(cfg)
 
 		// Verify Log Group exists
-		describeLogGroupsOutput, err := cwlClient.DescribeLogGroups(&cloudwatchlogs.DescribeLogGroupsInput{
+		describeLogGroupsOutput, err := cwlClient.DescribeLogGroups(ctx, &cloudwatchlogs.DescribeLogGroupsInput{
 			LogGroupNamePrefix: aws.String(logGroupName),
 		})
 		require.NoError(t, err, "Failed to describe CloudWatch log groups")
 
 		logGroupFound := false
-		var retentionDays int64
+		var retentionDays int32
 		for _, group := range describeLogGroupsOutput.LogGroups {
 			if *group.LogGroupName == logGroupName {
 				logGroupFound = true
@@ -139,6 +139,6 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 			}
 		}
 		assert.True(t, logGroupFound, "CloudWatch Log Group not found")
-		assert.Equal(t, int64(30), retentionDays, "CloudWatch Log Group retention days should be 30")
+		assert.Equal(t, int32(30), retentionDays, "CloudWatch Log Group retention days should be 30")
 	})
 }
