@@ -1,4 +1,4 @@
-//go:build readonly,examples
+//go:build readonly && examples
 
 package examples
 

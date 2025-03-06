@@ -1,4 +1,4 @@
-//go:build integration,examples
+//go:build integration && examples
 
 package examples
 
@@ -38,7 +38,8 @@ func TestDeploymentOnExamplesBasicWhenDisabledFixture(t *testing.T) {
 	terraform.InitAndApply(t, terraformOptions)
 
 	// Get outputs from Terraform
-	isEnabled := terraform.OutputBoolean(t, terraformOptions, "is_enabled")
+	isEnabledStr := terraform.Output(t, terraformOptions, "is_enabled")
+	isEnabled := isEnabledStr == "true"
 
 	// Verify the module is disabled
 	assert.False(t, isEnabled, "Expected module to be disabled with is_enabled=false")

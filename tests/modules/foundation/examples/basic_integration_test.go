@@ -68,7 +68,7 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 		})
 		require.NoError(t, err, "Failed to describe KMS key")
 
-		assert.Equal(t, kmsKeyArn, *describeKeyOutput.KeyMetadata.ARN, "KMS Key ARN mismatch")
+		assert.Equal(t, kmsKeyArn, *describeKeyOutput.KeyMetadata.Arn, "KMS Key ARN mismatch")
 		assert.Equal(t, "Enabled", string(describeKeyOutput.KeyMetadata.KeyState), "KMS Key should be enabled")
 
 		// Verify KMS Key Alias
@@ -111,7 +111,7 @@ func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 		kmsEncryptionFound := false
 		for _, rule := range encryptionRules {
 			if rule.ApplyServerSideEncryptionByDefault != nil &&
-				*rule.ApplyServerSideEncryptionByDefault.SSEAlgorithm == "aws:kms" {
+				rule.ApplyServerSideEncryptionByDefault.SSEAlgorithm == "aws:kms" {
 				kmsEncryptionFound = true
 				break
 			}
