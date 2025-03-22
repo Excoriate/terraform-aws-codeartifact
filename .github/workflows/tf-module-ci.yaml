@@ -308,8 +308,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        example: ${{ fromJson(needs.find-fixtures.outputs.examples) }}
-        fixture: ${{ fromJson(format('(%s)["{0}"]', needs.find-fixtures.outputs.fixtures))[matrix.example] }}
+        include: ${{ fromJson(needs.find-fixtures.outputs.examples) }}
     env:
       # Set AWS credentials based on user input or use mock credentials
       AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
