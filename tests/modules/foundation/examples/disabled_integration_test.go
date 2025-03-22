@@ -4,11 +4,11 @@ package examples
 
 import (
 	"testing"
+	"time"
 
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // TestDeploymentOnExamplesBasicWhenDisabledFixture verifies the full deployment of
@@ -16,19 +16,16 @@ import (
 func TestDeploymentOnExamplesBasicWhenDisabledFixture(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
-	// Setup the terraform options with disabled fixture
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-		VarFiles:     []string{"fixtures/disabled.tfvars"},
-	}
+	// Add var files to the options
+	terraformOptions.VarFiles = []string{"fixtures/disabled.tfvars"}
 
 	// Cleanup resources when the test completes
 	defer func() {
 		terraform.Destroy(t, terraformOptions)
+		helper.WaitForResourceDeletion(t, 10*time.Second)
 	}()
 
 	t.Logf("🔍 Terraform Example Directory: %s", terraformOptions.TerraformDir)

@@ -5,7 +5,7 @@ package examples
 import (
 	"testing"
 
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
@@ -15,14 +15,11 @@ import (
 func TestPlanningOnExamplesBasicWhenLogsDisabledFixture(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-		VarFiles:     []string{"fixtures/logs-disabled.tfvars"},
-	}
+	// Add var files to the options
+	terraformOptions.VarFiles = []string{"fixtures/logs-disabled.tfvars"}
 
 	t.Logf("🔍 Terraform Example Directory: %s", terraformOptions.TerraformDir)
 	t.Logf("📝 Using fixture: fixtures/logs-disabled.tfvars")

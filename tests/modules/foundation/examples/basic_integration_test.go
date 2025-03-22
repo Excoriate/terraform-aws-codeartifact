@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -24,15 +23,11 @@ import (
 func TestDeploymentOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
-	// Setup the terraform options with default fixture
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-		VarFiles:     []string{"fixtures/default.tfvars"},
-	}
+	// Add var files to the options
+	terraformOptions.VarFiles = []string{"fixtures/default.tfvars"}
 
 	// Cleanup resources when the test completes
 	defer func() {

@@ -8,6 +8,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 )
 
@@ -16,13 +17,8 @@ import (
 func TestInitializationOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
 	t.Logf("🔍 Terraform Example Directory: %s", terraformOptions.TerraformDir)
 
@@ -36,13 +32,8 @@ func TestInitializationOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 func TestValidationOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
 	initOutput, err := terraform.InitE(t, terraformOptions)
 	require.NoError(t, err, "Terraform init failed")
@@ -58,14 +49,15 @@ func TestValidationOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 func TestPlanningOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 	t.Parallel()
 
+	// Get test directory for var files path
 	dirs, err := repo.NewTFSourcesDir()
 	require.NoError(t, err, "Failed to get Terraform sources directory")
 
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-		VarFiles:     []string{"fixtures/default.tfvars"},
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
+
+	// Add var files to the options
+	terraformOptions.VarFiles = []string{"fixtures/default.tfvars"}
 
 	t.Logf("🔍 Terraform Example Directory: %s", terraformOptions.TerraformDir)
 	t.Logf("📝 Using fixture: fixtures/default.tfvars")
@@ -90,13 +82,8 @@ func TestPlanningOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 func TestFormatCheckOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("foundation/basic"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
 
 	t.Logf("🔍 Checking Terraform formatting in: %s", terraformOptions.TerraformDir)
 
