@@ -44,12 +44,6 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "resource_prefix" {
-  type        = string
-  description = "Prefix to use for resource naming."
-  default     = "codeartifact"
-}
-
 ###################################
 # KMS Configuration Variables
 ###################################
