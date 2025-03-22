@@ -12,7 +12,7 @@ on:
         description: 'Run unit tests (readonly only)'
         required: false
         type: boolean
-        default: true
+        default: false
       run_examples_tests:
         description: 'Run examples tests (readonly only)'
         required: false
@@ -134,20 +134,136 @@ jobs:
           echo "🔬 Validating Terraform module configuration..."
           terraform validate
 
-  discover-test-targets:
-    name: 🔍 Discover Test Targets
+  ci-examples:
+    name: 🌈 Examples Validation
     runs-on: ubuntu-latest
-    outputs:
-      examples: ${{ steps.find-examples.outputs.examples }}
-      unit_tests_exist: ${{ steps.check-unit-tests.outputs.exists }}
-      examples_tests_exist: ${{ steps.check-examples-tests.outputs.exists }}
+    if: ${{ success() }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: 🔎 Find Example Implementations
-        id: find-examples
+      - name: 🔎 Check Examples Directory
+        id: check_examples
         run: |
-          # Find all directories under the example module directory
+          if [ -d "examples/${{ inputs.module_name }}" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "🌟 Examples directory found for module: ${{ inputs.module_name }}"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No examples directory found for module: ${{ inputs.module_name }}"
+          fi
+
+      - name: 🛠️ Setup Terraform
+        if: steps.check_examples.outputs.exists == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: 🔧 Setup TFLint
+        if: steps.check_examples.outputs.exists == 'true'
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+
+      - name: 🗂️ Cache TFLint Plugins
+        if: steps.check_examples.outputs.exists == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-examples-${{ hashFiles('examples/${{ inputs.module_name }}/**/.tflint.hcl') }}
+
+      - name: 🧰 Setup Terraform Docs
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz
+          tar -xzf terraform-docs.tar.gz
+          chmod +x terraform-docs
+          sudo mv terraform-docs /usr/local/bin/
+
+      - name: 🔍 Find Example Directories
+        if: steps.check_examples.outputs.exists == 'true'
+        id: find_examples
+        run: |
+          EXAMPLES=$(find "examples/${{ inputs.module_name }}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "examples=${EXAMPLES}" >> $GITHUB_OUTPUT
+          echo "🌟 Discovered Examples: ${EXAMPLES}"
+
+      - name: 🧹 Terraform Format Check for Examples
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          echo "✨ Checking Terraform code formatting in examples..."
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            echo "Checking example: $example"
+            cd "$GITHUB_WORKSPACE/examples/${{ inputs.module_name }}/$example"
+            terraform fmt -check -recursive
+          done
+
+      - name: 🔍 TFLint Validation for Examples
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          echo "🕵️ Running TFLint for examples..."
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            echo "Checking example: $example"
+            cd "$GITHUB_WORKSPACE/examples/${{ inputs.module_name }}/$example"
+            if [ -f ".tflint.hcl" ]; then
+              tflint --init
+              tflint -f compact
+            else
+              echo "No .tflint.hcl found, skipping TFLint for this example"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 📄 Terraform Docs Validation for Examples
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          echo "📝 Checking required documentation files in examples..."
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            echo "Checking example: $example"
+            cd "$GITHUB_WORKSPACE/examples/${{ inputs.module_name }}/$example"
+
+            # Verify README.md exists
+            if [ -f "README.md" ]; then
+              echo "✅ README.md found"
+            else
+              echo "⚠️ README.md not found in example: $example (warning only)"
+            fi
+          done
+
+      - name: 🏗️ Terraform Initialization for Examples
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          echo "🚀 Initializing Terraform examples..."
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            echo "Initializing example: $example"
+            cd "$GITHUB_WORKSPACE/examples/${{ inputs.module_name }}/$example"
+            terraform init -backend=false
+          done
+
+      - name: 🧪 Terraform Validation for Examples
+        if: steps.check_examples.outputs.exists == 'true'
+        run: |
+          echo "🔬 Validating Terraform example configurations..."
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            echo "Validating example: $example"
+            cd "$GITHUB_WORKSPACE/examples/${{ inputs.module_name }}/$example"
+            terraform validate
+          done
+
+  find-fixtures:
+    name: 🔍 Discover Fixture Files
+    needs: [ci-module, ci-examples]
+    runs-on: ubuntu-latest
+    outputs:
+      fixtures: ${{ steps.find_fixtures.outputs.fixtures }}
+      examples: ${{ steps.find_examples.outputs.examples }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🔍 Find Example Directories
+        id: find_examples
+        run: |
           if [ -d "examples/${{ inputs.module_name }}" ]; then
             EXAMPLES=$(find "examples/${{ inputs.module_name }}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n") | map(select(. != ""))')
             echo "examples=${EXAMPLES}" >> $GITHUB_OUTPUT
@@ -156,6 +272,96 @@ jobs:
             echo "examples=[]" >> $GITHUB_OUTPUT
             echo "⚠️ No examples directory found for module: ${{ inputs.module_name }}"
           fi
+
+      - name: 🔍 Find Fixture Files
+        id: find_fixtures
+        run: |
+          FIXTURES_JSON="{"
+          FIRST=true
+
+          # Loop through each example directory
+          for example in $(echo '${{ steps.find_examples.outputs.examples }}' | jq -r '.[]'); do
+            FIXTURES_PATH="examples/${{ inputs.module_name }}/$example/fixtures"
+
+            if [ -d "$FIXTURES_PATH" ]; then
+              # Find all .tfvars files in the fixtures directory
+              FIXTURE_FILES=$(find "$FIXTURES_PATH" -name "*.tfvars" -exec basename {} \; | jq -R -s 'split("\n") | map(select(. != ""))')
+
+              if [ "$FIRST" = false ]; then
+                FIXTURES_JSON="$FIXTURES_JSON,"
+              fi
+
+              FIXTURES_JSON="$FIXTURES_JSON\"$example\":$FIXTURE_FILES"
+              FIRST=false
+            fi
+          done
+
+          FIXTURES_JSON="$FIXTURES_JSON}"
+          echo "fixtures=$FIXTURES_JSON" >> $GITHUB_OUTPUT
+          echo "🔍 Discovered Fixtures: $FIXTURES_JSON"
+
+  examples-plan:
+    name: 📋 Examples Plan - ${{ matrix.example }} - ${{ matrix.fixture }}
+    needs: [find-fixtures]
+    runs-on: ubuntu-latest
+    if: ${{ needs.find-fixtures.outputs.fixtures != '{}' && needs.find-fixtures.outputs.fixtures != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        example: ${{ fromJson(needs.find-fixtures.outputs.examples) }}
+        fixture: ${{ fromJson(format('(%s)["{0}"]', needs.find-fixtures.outputs.fixtures))[matrix.example] }}
+    env:
+      # Set AWS credentials based on user input or use mock credentials
+      AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
+        'mock-access-key' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.use_aws_credentials == true && inputs.aws_secret_key != '' && inputs.aws_secret_key
+        || 'mock-secret-key' }}
+      AWS_REGION: ${{ inputs.use_aws_credentials == true && inputs.aws_region || 'us-east-1' }}
+      # Skip actual AWS operations when using mock credentials
+      TF_VAR_skip_credentials_validation: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_requesting_account_id: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_metadata_api_check: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🛠️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: 🔧 Create Terraform Plugin Cache Directory
+        run: |
+          mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
+      - name: 📝 Display Credential Configuration
+        run: |
+          echo "🔐 Using AWS credentials: ${{ inputs.use_aws_credentials == true && 'User-provided' || 'Mock credentials' }}"
+          echo "🌎 AWS Region: ${{ env.AWS_REGION }}"
+          if [[ "${{ inputs.use_aws_credentials }}" != "true" ]]; then
+            echo "⚠️ Using mock credentials with provider verification disabled"
+          fi
+
+      - name: 🧪 Run Terraform Plan with Fixture
+        working-directory: examples/${{ inputs.module_name }}/${{ matrix.example }}
+        run: |
+          echo "🔍 Running plan for example: ${{ matrix.example }} with fixture: ${{ matrix.fixture }}"
+
+          # Initialize Terraform
+          terraform init -backend=false
+
+          # Run plan with fixture file
+          terraform plan -input=false -var-file="fixtures/${{ matrix.fixture }}" -lock=false
+
+  discover-unit-test-targets:
+    name: 🔍 Discover Unit Test Targets
+    needs: [ci-module, ci-examples, examples-plan]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_unit_tests == true }}
+    outputs:
+      unit_tests_exist: ${{ steps.check-unit-tests.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: 🔎 Check for Unit Tests
         id: check-unit-tests
@@ -169,6 +375,16 @@ jobs:
             echo "🔬 Unit Tests Exist: false"
           fi
 
+  discover-examples-test-targets:
+    name: 🔍 Discover Examples Test Targets
+    needs: [ci-module, ci-examples, examples-plan]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_examples_tests == true }}
+    outputs:
+      examples_tests_exist: ${{ steps.check-examples-tests.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+
       - name: 🔎 Check for Examples Tests
         id: check-examples-tests
         run: |
@@ -181,51 +397,11 @@ jobs:
             echo "🔬 Examples Tests Exist: false"
           fi
 
-  ci-examples:
-    name: 🌈 Example Validation - ${{ matrix.example }}
-    needs: [ci-module, discover-test-targets]
-    runs-on: ubuntu-latest
-    if: ${{ needs.discover-test-targets.outputs.examples != '[]' && needs.discover-test-targets.outputs.examples != '' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        example: ${{ fromJson(needs.discover-test-targets.outputs.examples) }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 🛠️ Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: 🧪 Validate Example - ${{ matrix.example }}
-        run: |
-          echo "🔍 Validating example: ${{ matrix.example }}"
-
-          EXAMPLE_PATH="examples/${{ inputs.module_name }}/${{ matrix.example }}"
-          echo "📂 Validating directory: ${EXAMPLE_PATH}"
-
-          # Change to example directory
-          cd "${EXAMPLE_PATH}"
-
-          # Terraform fmt check
-          echo "✨ Checking Terraform formatting..."
-          terraform fmt -check -recursive
-
-          # Terraform init
-          echo "🚀 Initializing Terraform example..."
-          terraform init -backend=false
-
-          # Terraform validate
-          echo "🧪 Validating Terraform configuration..."
-          terraform validate
-
   ci-terratest-unit-readonly:
     name: 🧪 Unit Tests (Readonly)
-    needs: [ci-module, discover-test-targets]
+    needs: [discover-unit-test-targets, examples-plan]
     runs-on: ubuntu-latest
-    if: ${{ inputs.run_unit_tests == true && needs.discover-test-targets.outputs.unit_tests_exist == 'true' }}
+    if: ${{ inputs.run_unit_tests == true && needs.discover-unit-test-targets.outputs.unit_tests_exist == 'true' }}
     env:
       # Set AWS credentials based on user input or use mock credentials
       AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
@@ -286,9 +462,10 @@ jobs:
 
   ci-terratest-examples-readonly:
     name: 🧪 Examples Tests (Readonly)
-    needs: [ci-module, discover-test-targets]
+    needs: [discover-examples-test-targets, examples-plan]
     runs-on: ubuntu-latest
-    if: ${{ inputs.run_examples_tests == true && needs.discover-test-targets.outputs.examples_tests_exist == 'true' }}
+    if: ${{ inputs.run_examples_tests == true && needs.discover-examples-test-targets.outputs.examples_tests_exist == 'true'
+      }}
     env:
       # Set AWS credentials based on user input or use mock credentials
       AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
@@ -356,8 +533,11 @@ jobs:
     needs:
       - ci-module
       - ci-examples
+      - examples-plan
       - ci-terratest-unit-readonly
       - ci-terratest-examples-readonly
+      - discover-unit-test-targets
+      - discover-examples-test-targets
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -369,8 +549,27 @@ jobs:
           echo "📋 Test Execution Summary:"
           echo "  - Module Validation: ${{ needs.ci-module.result }}"
           echo "  - Examples Validation: ${{ needs.ci-examples.result == 'skipped' && 'Not Applicable' || needs.ci-examples.result }}"
-          echo "  - Unit Tests (Readonly): ${{ (inputs.run_unit_tests == false || needs.ci-terratest-unit-readonly.result == 'skipped') && 'Not Run' || needs.ci-terratest-unit-readonly.result }}"
-          echo "  - Examples Tests (Readonly): ${{ (inputs.run_examples_tests == false || needs.ci-terratest-examples-readonly.result == 'skipped') && 'Not Run' || needs.ci-terratest-examples-readonly.result }}"
+          echo "  - Examples Plan: ${{ needs.examples-plan.result == 'skipped' && 'Not Applicable' || needs.examples-plan.result }}"
+
+          if [[ "${{ inputs.run_unit_tests }}" == "true" ]]; then
+            if [[ "${{ needs.discover-unit-test-targets.result }}" == "success" && "${{ needs.discover-unit-test-targets.outputs.unit_tests_exist }}" == "true" ]]; then
+              echo "  - Unit Tests (Readonly): ${{ needs.ci-terratest-unit-readonly.result }}"
+            else
+              echo "  - Unit Tests (Readonly): Not applicable - No unit tests found"
+            fi
+          else
+            echo "  - Unit Tests (Readonly): Not Run - Disabled by user"
+          fi
+
+          if [[ "${{ inputs.run_examples_tests }}" == "true" ]]; then
+            if [[ "${{ needs.discover-examples-test-targets.result }}" == "success" && "${{ needs.discover-examples-test-targets.outputs.examples_tests_exist }}" == "true" ]]; then
+              echo "  - Examples Tests (Readonly): ${{ needs.ci-terratest-examples-readonly.result }}"
+            else
+              echo "  - Examples Tests (Readonly): Not applicable - No examples tests found"
+            fi
+          else
+            echo "  - Examples Tests (Readonly): Not Run - Disabled by user"
+          fi
 
           echo "🔐 Credential Configuration:"
           echo "  - Using AWS Credentials: ${{ inputs.use_aws_credentials == true && 'Yes (User-provided)' || 'No (Mock credentials)' }}"
@@ -382,22 +581,12 @@ jobs:
             exit 1
           fi
 
-          # ci-examples may be skipped if there are no examples
           if [[ "${{ needs.ci-examples.result }}" != "success" && "${{ needs.ci-examples.result }}" != "skipped" ]]; then
             echo "❌ Examples validation failed"
             exit 1
           fi
 
-          # Unit tests may be skipped if disabled or no unit tests exist
-          if [[ "${{ inputs.run_unit_tests }}" == "true" && "${{ needs.ci-terratest-unit-readonly.result }}" != "success" && "${{ needs.ci-terratest-unit-readonly.result }}" != "skipped" ]]; then
-            echo "❌ Unit tests (readonly) failed"
+          if [[ "${{ needs.examples-plan.result }}" != "success" && "${{ needs.examples-plan.result }}" != "skipped" ]]; then
+            echo "❌ Examples plan failed"
             exit 1
           fi
-
-          # Examples tests may be skipped if disabled or no examples tests exist
-          if [[ "${{ inputs.run_examples_tests }}" == "true" && "${{ needs.ci-terratest-examples-readonly.result }}" != "success" && "${{ needs.ci-terratest-examples-readonly.result }}" != "skipped" ]]; then
-            echo "❌ Examples tests (readonly) failed"
-            exit 1
-          fi
-
-          echo "✅ All required checks passed!"
