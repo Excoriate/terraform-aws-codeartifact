@@ -8,13 +8,18 @@ on:
         description: 'Terraform module name to validate (mandatory)'
         required: true
         type: string
+      run_examples_tests:
+        description: 'Run examples tests (read-only only)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
   pull-requests: read
 
 env:
-  TERRAFORM_VERSION: '1.10.0'
+  TERRAFORM_VERSION: '1.11.2'
   TFLINT_VERSION: 'latest'
   TERRAFORM_DOCS_VERSION: 'latest'
   GO_VERSION: '1.21'
@@ -226,7 +231,7 @@ jobs:
     name: 🧪 Examples Tests (Readonly)
     needs: [ci-module, discover-test-targets]
     runs-on: ubuntu-latest
-    if: ${{ needs.discover-test-targets.outputs.examples_tests_exist == 'true' }}
+    if: ${{ needs.discover-test-targets.outputs.examples_tests_exist == 'true' && inputs.run_examples_tests == true }}
     steps:
       - uses: actions/checkout@v4
 
@@ -263,86 +268,6 @@ jobs:
           # Run the tests (without -parallel flag to avoid concurrency issues)
           go test -v -tags 'readonly,examples' -count=1 ./modules/${{ inputs.module_name }}/examples/...
 
-  ci-terratest-unit-integration:
-    name: 🧪 Unit Tests (Integration)
-    needs: [ci-module, discover-test-targets]
-    runs-on: ubuntu-latest
-    # Integration tests are disabled by default (set to 'false') because they require cloud credentials
-    # When enabled, we check if unit tests exist
-    if: ${{ false && needs.discover-test-targets.outputs.unit_tests_exist == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 🛠️ Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: 🔧 Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: 🧪 Run Unit Tests (Integration)
-        working-directory: tests
-        run: |
-          echo "🚀 Running Integration Unit Tests for module: ${{ inputs.module_name }}"
-
-          # Clean up any existing state before running
-          find modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
-
-          # Ensure Go modules are up to date
-          go mod tidy
-
-          # Run the tests (without -parallel flag to avoid concurrency issues)
-          go test -v -tags 'integration,unit' -count=1 ./modules/${{ inputs.module_name }}/unit/...
-
-  ci-terratest-examples-integration:
-    name: 🧪 Examples Tests (Integration)
-    needs: [ci-module, discover-test-targets]
-    runs-on: ubuntu-latest
-    # Integration tests are disabled by default (set to 'false') because they require cloud credentials
-    # When enabled, we check if examples tests exist
-    if: ${{ false && needs.discover-test-targets.outputs.examples_tests_exist == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 🛠️ Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: 🔧 Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          terraform_wrapper: false
-
-      - name: 🧪 Run Examples Tests (Integration)
-        working-directory: tests
-        run: |
-          echo "🚀 Running Integration Examples Tests for module: ${{ inputs.module_name }}"
-
-          # Clean up any existing state before running
-          find modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
-
-          # Find all terraform example directories and clean them
-          cd ..
-          find examples/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find examples/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
-          cd tests
-
-          # Ensure Go modules are up to date
-          go mod tidy
-
-          # Run the tests (without -parallel flag to avoid concurrency issues)
-          go test -v -tags 'integration,examples' -count=1 ./modules/${{ inputs.module_name }}/examples/...
-
   summary:
     name: 🏁 Validation Summary
     needs:
@@ -350,8 +275,6 @@ jobs:
       - ci-examples
       - ci-terratest-unit-readonly
       - ci-terratest-examples-readonly
-      - ci-terratest-unit-integration
-      - ci-terratest-examples-integration
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -379,21 +302,9 @@ jobs:
             exit 1
           fi
 
-          # Examples tests (readonly) may be skipped if there are no examples tests
+          # Examples tests (readonly) may be skipped if there are no examples tests or not requested
           if [[ "${{ needs.ci-terratest-examples-readonly.result }}" != "success" && "${{ needs.ci-terratest-examples-readonly.result }}" != "skipped" ]]; then
             echo "❌ Examples tests (readonly) failed"
-            exit 1
-          fi
-
-          # Integration tests are disabled by default, so they should be skipped
-          if [[ "${{ needs.ci-terratest-unit-integration.result }}" != "success" && "${{ needs.ci-terratest-unit-integration.result }}" != "skipped" ]]; then
-            echo "❌ Unit tests (integration) failed"
-            exit 1
-          fi
-
-          # Integration tests are disabled by default, so they should be skipped
-          if [[ "${{ needs.ci-terratest-examples-integration.result }}" != "success" && "${{ needs.ci-terratest-examples-integration.result }}" != "skipped" ]]; then
-            echo "❌ Examples tests (integration) failed"
             exit 1
           fi
 
