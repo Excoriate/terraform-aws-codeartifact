@@ -16,6 +16,16 @@ output "tags_set" {
   description = "The tags set for the module."
 }
 
+output "feature_flags" {
+  value = {
+    is_enabled           = var.is_enabled
+    is_kms_key_enabled   = local.is_kms_key_enabled
+    is_log_group_enabled = local.is_log_group_enabled
+    is_s3_bucket_enabled = local.is_s3_bucket_enabled
+  }
+  description = "The feature flags set for the module."
+}
+
 ###################################
 # Module Outputs 📤
 # ----------------------------------------------------

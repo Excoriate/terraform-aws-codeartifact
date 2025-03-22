@@ -26,7 +26,8 @@ resource "aws_kms_key" "this" {
   tags = merge(
     local.common_tags,
     {
-      Name = "codeartifact-encryption-key"
+      Name       = "codeartifact-${local.codeartifact_domain_name}-encryption-key"
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
@@ -48,14 +49,15 @@ resource "aws_kms_alias" "this" {
 resource "aws_cloudwatch_log_group" "this" {
   count = local.is_log_group_enabled ? 1 : 0
 
-  name              = var.log_group_name
+  name              = coalesce(var.log_group_name, local.default_log_group_name)
   retention_in_days = var.log_group_retention_days
-  kms_key_id       = local.is_kms_key_enabled ? aws_kms_key.this[0].arn : null
+  kms_key_id        = local.is_kms_key_enabled ? aws_kms_key.this[0].arn : null
 
   tags = merge(
     local.common_tags,
     {
-      Name = var.log_group_name
+      Name       = coalesce(var.log_group_name, local.default_log_group_name)
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
@@ -71,13 +73,14 @@ resource "aws_cloudwatch_log_group" "this" {
 resource "aws_s3_bucket" "this" {
   count = local.is_s3_bucket_enabled ? 1 : 0
 
-  bucket        = var.s3_bucket_name
+  bucket        = coalesce(var.s3_bucket_name, local.bucket_name)
   force_destroy = var.force_destroy_bucket
 
   tags = merge(
     local.common_tags,
     {
-      Name = var.s3_bucket_name
+      Name       = coalesce(var.s3_bucket_name, local.bucket_name)
+      DomainName = local.codeartifact_domain_name
     }
   )
 }
@@ -113,4 +116,11 @@ resource "aws_s3_bucket_public_access_block" "this" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_policy" "this" {
+  count = local.is_bucket_policy_enabled ? 1 : 0
+
+  bucket = aws_s3_bucket.this[0].id
+  policy = local.bucket_policy
 }

@@ -8,9 +8,13 @@
 # Test binary, built with `go test -c`
 *.test
 
-# AI generated files
+# AI.
 *.ai
+*.aider.*
 *.cursor
+
+# Mac
+.DS_Store
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
@@ -29,9 +33,6 @@
 # Dev builds
 **/build/
 **/dist/
-
-# Mac
-.DS_Store
 
 .idea/
 .vscode/
@@ -57,3 +58,6 @@ result-*
 # Nix flake specific
 .flake-registry.json
 flake.lock.old
+
+# Specific ignore pattern for .terraform.lock.hcl files in tests directory
+**/tests/modules/**/**.terraform.lock.hcl

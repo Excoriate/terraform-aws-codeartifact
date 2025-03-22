@@ -17,6 +17,45 @@ variable "is_enabled" {
   default     = true
 }
 
+variable "is_kms_key_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the KMS key and alias for CodeArtifact encryption.
+  When enabled, a dedicated KMS key will be created for encrypting CodeArtifact artifacts
+  and related resources. This key will also be used for S3 bucket encryption if both
+  KMS and S3 features are enabled.
+
+  Default: true (creates KMS key and alias)
+  DESC
+  default     = true
+}
+
+variable "is_log_group_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the CloudWatch Log Group for CodeArtifact audit logs.
+  When enabled, a dedicated log group will be created to store and manage CodeArtifact
+  audit logs with the specified retention period. If KMS encryption is also enabled,
+  the logs will be encrypted using the created KMS key.
+
+  Default: true (creates CloudWatch Log Group)
+  DESC
+  default     = true
+}
+
+variable "is_s3_bucket_enabled" {
+  type        = bool
+  description = <<-DESC
+  Controls whether to create the S3 bucket for CodeArtifact backups and artifacts.
+  When enabled, a dedicated S3 bucket will be created with versioning enabled and
+  public access blocked. If KMS encryption is also enabled, the bucket will use
+  the created KMS key for encryption.
+
+  Default: true (creates S3 bucket)
+  DESC
+  default     = true
+}
+
 ###################################
 # KMS Key Variables 🔐
 ###################################
@@ -38,6 +77,34 @@ variable "kms_key_alias" {
   validation {
     condition     = can(regex("^alias/", var.kms_key_alias))
     error_message = "The KMS key alias must begin with 'alias/'."
+  }
+}
+
+variable "kms_key_policy" {
+  type        = string
+  description = <<-DESC
+  Specifies a custom IAM policy for the KMS key. This policy controls who can use and manage the KMS key.
+  If not provided, a default policy will be used that allows:
+  - Root account access for key administration
+  - CodeArtifact service for encryption operations
+  - S3 service for encryption operations
+  - CloudWatch Logs for encryption operations
+
+  The policy should be provided as a JSON-encoded string and must follow AWS KMS key policy syntax and rules.
+  See AWS documentation for KMS key policies: https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html
+
+  **IMPORTANT SECURITY CONSIDERATIONS**:
+  - Ensure the policy follows the principle of least privilege
+  - Include necessary permissions for key administration
+  - Consider including conditions for additional security
+  - Don't remove essential service permissions needed for CodeArtifact operation
+  ```
+  DESC
+  default     = null
+
+  validation {
+    condition     = var.kms_key_policy == null ? true : can(jsondecode(var.kms_key_policy))
+    error_message = "The KMS key policy must be a valid JSON string."
   }
 }
 
@@ -77,6 +144,122 @@ variable "force_destroy_bucket" {
   type        = bool
   description = "Controls whether the S3 bucket can be forcefully deleted even when it contains objects. When set to true, all objects (including all versions and delete markers) in the bucket will be deleted automatically when the bucket is destroyed. This is useful for development environments or when you're certain that the bucket contents can be deleted. However, use this option with caution in production environments to prevent accidental data loss."
   default     = false
+}
+
+variable "s3_bucket_policy_override" {
+  type        = string
+  description = <<-DESC
+  Optional custom bucket policy to override the default policy. This should be a valid JSON-encoded policy.
+  When provided, this policy will completely replace the default bucket policy.
+
+  **IMPORTANT NOTES**:
+  - This policy must be a valid S3 bucket policy document
+  - The policy must include necessary principal and resource configurations
+  - If provided, this overrides all other policy configurations
+
+  **USAGE EXAMPLE**:
+  ```hcl
+  s3_bucket_policy_override = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCrossAccountAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = ["arn:aws:iam::ACCOUNT-ID:root"]
+        }
+        Action    = ["s3:GetObject", "s3:ListBucket"]
+        Resource  = ["arn:aws:s3:::BUCKET-NAME/*"]
+      }
+    ]
+  })
+  ```
+  DESC
+  default     = null
+}
+
+variable "additional_bucket_policies" {
+  type = list(object({
+    sid     = string
+    effect  = string
+    actions = list(string)
+    principals = object({
+      type        = string
+      identifiers = list(string)
+    })
+    resources = list(string)
+    condition = optional(map(map(string)), null)
+  }))
+  description = <<-DESC
+  List of additional bucket policy statements to be added to the default bucket policy.
+  This allows extending the default policy without completely replacing it.
+
+  **STRUCTURE**:
+  - sid: Unique statement identifier
+  - effect: "Allow" or "Deny"
+  - actions: List of S3 actions
+  - principals: IAM principals to grant access
+    - type: Principal type (e.g., "AWS", "Service")
+    - identifiers: List of principal identifiers
+  - resources: List of S3 resource ARNs
+  - condition: Optional condition block (map of condition operators to values)
+
+  **USAGE EXAMPLE**:
+  ```hcl
+  additional_bucket_policies = [
+    {
+      sid     = "AllowCrossAccountAccess"
+      effect  = "Allow"
+      actions = ["s3:GetObject", "s3:ListBucket"]
+      principals = {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::ACCOUNT-ID:root"]
+      }
+      resources = ["arn:aws:s3:::BUCKET-NAME/*"]
+    }
+  ]
+  ```
+  DESC
+  default     = []
+
+  validation {
+    condition     = alltrue([for p in var.additional_bucket_policies : can(regex("^[A-Za-z0-9-_]+$", p.sid))])
+    error_message = "All policy statement IDs (sid) must be alphanumeric with optional underscores or hyphens."
+  }
+
+  validation {
+    condition     = alltrue([for p in var.additional_bucket_policies : contains(["Allow", "Deny"], p.effect)])
+    error_message = "Policy effect must be either 'Allow' or 'Deny'."
+  }
+}
+
+variable "bucket_name" {
+  type        = string
+  description = <<-DESC
+  Name of the S3 bucket to create. If not provided, a default name will be generated using the pattern:
+  codeartifact-[account-id]
+
+  **NAMING CONSTRAINTS**:
+  - Must be lowercase
+  - Must be between 3 and 63 characters
+  - Can contain only letters, numbers, dots (.), and hyphens (-)
+  - Must begin and end with a letter or number
+  - Must not be formatted as an IP address
+  DESC
+  default     = null
+
+  validation {
+    condition     = var.bucket_name == null || can(regex("^[a-z0-9][a-z0-9.-]*[a-z0-9]$", var.bucket_name))
+    error_message = "Bucket name must be lowercase, start and end with a letter/number, and contain only letters, numbers, dots, and hyphens."
+  }
+}
+
+variable "codeartifact_domain_name" {
+  type        = string
+  default     = "awsca-default"
+  description = <<-DESC
+  The name of the CodeArtifact domain to create. If it's not set, it'll default to 'awsca-default'.
+  DESC
 }
 
 ###################################
