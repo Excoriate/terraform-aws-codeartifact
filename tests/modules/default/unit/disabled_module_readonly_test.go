@@ -5,7 +5,7 @@ package unit
 import (
 	"testing"
 
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
@@ -15,13 +15,8 @@ import (
 func TestPlanningOnTargetWhenModuleDisabled(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetTargetDir("default", "disabled_module"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTargetTerraformOptions(t, "default", "disabled_module", nil)
 
 	t.Logf("🔍 Terraform Target Directory: %s", terraformOptions.TerraformDir)
 
@@ -44,13 +39,8 @@ func TestPlanningOnTargetWhenModuleDisabled(t *testing.T) {
 func TestOutputsOnTargetWhenModuleDisabled(t *testing.T) {
 	t.Parallel()
 
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetTargetDir("default", "disabled_module"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTargetTerraformOptions(t, "default", "disabled_module", nil)
 
 	t.Logf("🔍 Terraform Target Directory: %s", terraformOptions.TerraformDir)
 

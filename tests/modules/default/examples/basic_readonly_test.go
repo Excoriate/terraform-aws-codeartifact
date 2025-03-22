@@ -8,7 +8,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
+	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
 )
 
 // TestInitializationOnBasicExampleWhenModuleEnabled verifies that the basic example
@@ -22,18 +22,10 @@ func TestInitializationOnBasicExampleWhenModuleEnabled(t *testing.T) {
 	// Enable parallel test execution
 	t.Parallel()
 
-	// Setup phase - Get directory paths using repo utilities
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	// Create Terraform options for the test
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("default/basic"),
-		Upgrade:      true,
-		Vars: map[string]interface{}{
-			"is_enabled": true,
-		},
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "default/basic", map[string]interface{}{
+		"is_enabled": true,
+	})
 
 	// Log the test context
 	t.Logf("🔍 Testing example at directory: %s", terraformOptions.TerraformDir)
@@ -55,15 +47,8 @@ func TestValidationOnBasicExampleWhenTerraformInitialized(t *testing.T) {
 	// Enable parallel test execution
 	t.Parallel()
 
-	// Setup phase - Get directory paths using repo utilities
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	// Create Terraform options for the test
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("default/basic"),
-		Upgrade:      true,
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "default/basic", nil)
 
 	// Log the test context
 	t.Logf("🔍 Testing example at directory: %s", terraformOptions.TerraformDir)
@@ -90,18 +75,10 @@ func TestPlanningOnBasicExampleWhenModuleDisabled(t *testing.T) {
 	// Enable parallel test execution
 	t.Parallel()
 
-	// Setup phase - Get directory paths using repo utilities
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
-
-	// Create Terraform options with the module disabled
-	terraformOptions := &terraform.Options{
-		TerraformDir: dirs.GetExamplesDir("default/basic"),
-		Upgrade:      true,
-		Vars: map[string]interface{}{
-			"is_enabled": false,
-		},
-	}
+	// Use helper function to setup terraform options with isolated provider cache
+	terraformOptions := helper.SetupTerraformOptions(t, "default/basic", map[string]interface{}{
+		"is_enabled": false,
+	})
 
 	// Log the test context
 	t.Logf("🔍 Testing disabled module at directory: %s", terraformOptions.TerraformDir)

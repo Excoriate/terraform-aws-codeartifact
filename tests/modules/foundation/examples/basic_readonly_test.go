@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/helper"
-	"github.com/Excoriate/terraform-aws-codeartifact/tests/pkg/repo"
 )
 
 // TestInitializationOnExamplesBasicWhenAllFeaturesEnabled verifies that the basic example
@@ -48,10 +47,6 @@ func TestValidationOnExamplesBasicWhenAllFeaturesEnabled(t *testing.T) {
 // for the basic example when using the default fixture (all components enabled).
 func TestPlanningOnExamplesBasicWhenDefaultFixture(t *testing.T) {
 	t.Parallel()
-
-	// Get test directory for var files path
-	dirs, err := repo.NewTFSourcesDir()
-	require.NoError(t, err, "Failed to get Terraform sources directory")
 
 	// Use helper function to setup terraform options with isolated provider cache
 	terraformOptions := helper.SetupTerraformOptions(t, "foundation/basic", nil)
