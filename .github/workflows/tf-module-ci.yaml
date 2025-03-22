@@ -23,6 +23,13 @@ env:
   TFLINT_VERSION: 'latest'
   TERRAFORM_DOCS_VERSION: 'latest'
   GO_VERSION: '1.21'
+  # AWS mock credentials for read-only tests
+  AWS_ACCESS_KEY_ID: 'mock-access-key'
+  AWS_SECRET_ACCESS_KEY: 'mock-secret-key'
+  AWS_REGION: 'us-east-1'
+  # Disable actual AWS operations
+  AWS_SDK_LOAD_CONFIG: '0'
+  TF_PLUGIN_CACHE_DIR: '${{ github.workspace }}/.terraform.d/plugin-cache'
 
 jobs:
   ci-module:
@@ -124,9 +131,14 @@ jobs:
         id: find-examples
         run: |
           # Find all directories under the example module directory
-          EXAMPLES=$(find "examples/${{ inputs.module_name }}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "examples=${EXAMPLES}" >> $GITHUB_OUTPUT
-          echo "🌟 Discovered Examples: ${EXAMPLES}"
+          if [ -d "examples/${{ inputs.module_name }}" ]; then
+            EXAMPLES=$(find "examples/${{ inputs.module_name }}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n") | map(select(. != ""))')
+            echo "examples=${EXAMPLES}" >> $GITHUB_OUTPUT
+            echo "🌟 Discovered Examples: ${EXAMPLES}"
+          else
+            echo "examples=[]" >> $GITHUB_OUTPUT
+            echo "⚠️ No examples directory found for module: ${{ inputs.module_name }}"
+          fi
 
       - name: 🔎 Check for Unit Tests
         id: check-unit-tests
@@ -212,19 +224,43 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
+      - name: 🔧 Create Terraform Plugin Cache Directory
+        run: |
+          mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
       - name: 🧪 Run Unit Tests (Readonly)
         working-directory: tests
         run: |
           echo "🚀 Running Readonly Unit Tests for module: ${{ inputs.module_name }}"
 
           # Clean up any existing state before running
-          find modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
+          find ../modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
+          find ../modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
 
           # Ensure Go modules are up to date
           go mod tidy
 
-          # Run the tests (without -parallel flag to avoid concurrency issues)
+          # Create a mock AWS provider config if needed
+          echo "Creating mock AWS provider configuration for readonly tests..."
+          cat > aws_mock.go <<EOF
+          //go:build readonly
+
+          package helper
+
+          import (
+            "os"
+          )
+
+          func init() {
+            os.Setenv("AWS_ACCESS_KEY_ID", "mock-access-key")
+            os.Setenv("AWS_SECRET_ACCESS_KEY", "mock-secret-key")
+            os.Setenv("AWS_REGION", "us-east-1")
+            os.Setenv("TF_VAR_skip_provider_registration", "true")
+          }
+          EOF
+
+          # Run the tests with appropriate tags
+          # Using -v for verbose output and -count=1 to disable caching
           go test -v -tags 'readonly,unit' -count=1 ./modules/${{ inputs.module_name }}/unit/...
 
   ci-terratest-examples-readonly:
@@ -247,25 +283,83 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
+      - name: 🔧 Create Terraform Plugin Cache Directory
+        run: |
+          mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
       - name: 🧪 Run Examples Tests (Readonly)
         working-directory: tests
         run: |
           echo "🚀 Running Readonly Examples Tests for module: ${{ inputs.module_name }}"
 
           # Clean up any existing state before running
-          find modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
+          find ../modules/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
+          find ../modules/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
 
           # Find all terraform example directories and clean them
-          cd ..
-          find examples/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
-          find examples/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
-          cd tests
+          find ../examples/${{ inputs.module_name }} -name ".terraform" -type d -exec rm -rf {} \; 2>/dev/null || true
+          find ../examples/${{ inputs.module_name }} -name ".terraform.lock.hcl" -type f -delete 2>/dev/null || true
 
           # Ensure Go modules are up to date
           go mod tidy
 
-          # Run the tests (without -parallel flag to avoid concurrency issues)
+          # Create a mock AWS provider config if needed
+          echo "Creating mock AWS provider configuration for readonly tests..."
+          cat > aws_mock.go <<EOF
+          //go:build readonly
+
+          package helper
+
+          import (
+            "os"
+          )
+
+          func init() {
+            os.Setenv("AWS_ACCESS_KEY_ID", "mock-access-key")
+            os.Setenv("AWS_SECRET_ACCESS_KEY", "mock-secret-key")
+            os.Setenv("AWS_REGION", "us-east-1")
+            os.Setenv("TF_VAR_skip_provider_registration", "true")
+          }
+          EOF
+
+          # Create mock provider override for terraform
+          mkdir -p ./mocks
+          cat > ./mocks/provider_override.tf <<EOF
+          provider "aws" {
+            region                      = "us-east-1"
+            access_key                  = "mock-access-key"
+            secret_key                  = "mock-secret-key"
+            skip_credentials_validation = true
+            skip_requesting_account_id  = true
+            skip_metadata_api_check     = true
+          }
+          EOF
+
+          # Copy the mock provider to each test directory
+          if [ -d "./modules/${{ inputs.module_name }}/examples" ]; then
+            find ./modules/${{ inputs.module_name }}/examples -name "*_test.go" -exec dirname {} \; | sort -u | while read dir; do
+              cp ./mocks/provider_override.tf "$dir/"
+              echo "Added provider override to $dir"
+            done
+          fi
+
+          # Edit the Terratest helper to include special handling for readonly tests
+          if [ -f "./pkg/helper/terraform.go" ]; then
+            cat >> ./pkg/helper/terraform.go <<EOF
+
+          // SetupReadonlyTerraformOptions configures Terraform options for read-only tests
+          func SetupReadonlyTerraformOptions(t TestingT, examplePath string, vars map[string]interface{}) *terraform.Options {
+            opts := SetupTerraformOptions(t, examplePath, vars)
+            // Add special flags for readonly tests
+            opts.EnvVars["TF_CLI_ARGS"] = "-refresh=false"
+            opts.EnvVars["TF_SKIP_PROVIDER_VERIFY"] = "1"
+            return opts
+          }
+          EOF
+          fi
+
+          # Run the tests with appropriate tags
+          # Using -v for verbose output and -count=1 to disable caching
           go test -v -tags 'readonly,examples' -count=1 ./modules/${{ inputs.module_name }}/examples/...
 
   summary:
