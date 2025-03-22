@@ -8,11 +8,34 @@ on:
         description: 'Terraform module name to validate (mandatory)'
         required: true
         type: string
+      run_unit_tests:
+        description: 'Run unit tests (readonly only)'
+        required: false
+        type: boolean
+        default: true
       run_examples_tests:
-        description: 'Run examples tests (read-only only)'
+        description: 'Run examples tests (readonly only)'
         required: false
         type: boolean
         default: false
+      use_aws_credentials:
+        description: 'Use AWS credentials for tests (if not provided, mock credentials will be used)'
+        required: false
+        type: boolean
+        default: false
+      aws_access_key:
+        description: 'AWS Access Key (only used if "Use AWS credentials" is enabled)'
+        required: false
+        type: string
+      aws_secret_key:
+        description: 'AWS Secret Key (only used if "Use AWS credentials" is enabled)'
+        required: false
+        type: string
+      aws_region:
+        description: 'AWS Region (only used if "Use AWS credentials" is enabled)'
+        required: false
+        type: string
+        default: 'us-east-1'
 
 permissions:
   contents: read
@@ -23,12 +46,6 @@ env:
   TFLINT_VERSION: 'latest'
   TERRAFORM_DOCS_VERSION: 'latest'
   GO_VERSION: '1.21'
-  # AWS mock credentials for read-only tests
-  AWS_ACCESS_KEY_ID: 'mock-access-key'
-  AWS_SECRET_ACCESS_KEY: 'mock-secret-key'
-  AWS_REGION: 'us-east-1'
-  # Disable actual AWS operations
-  AWS_SDK_LOAD_CONFIG: '0'
   TF_PLUGIN_CACHE_DIR: '${{ github.workspace }}/.terraform.d/plugin-cache'
 
 jobs:
@@ -208,7 +225,21 @@ jobs:
     name: 🧪 Unit Tests (Readonly)
     needs: [ci-module, discover-test-targets]
     runs-on: ubuntu-latest
-    if: ${{ needs.discover-test-targets.outputs.unit_tests_exist == 'true' }}
+    if: ${{ inputs.run_unit_tests == true && needs.discover-test-targets.outputs.unit_tests_exist == 'true' }}
+    env:
+      # Set AWS credentials based on user input or use mock credentials
+      AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
+        'mock-access-key' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.use_aws_credentials == true && inputs.aws_secret_key != '' && inputs.aws_secret_key
+        || 'mock-secret-key' }}
+      AWS_REGION: ${{ inputs.use_aws_credentials == true && inputs.aws_region || 'us-east-1' }}
+      # For read-only tests, we need to set these regardless of credentials source
+      TF_CLI_ARGS: "-refresh=false"
+      TF_SKIP_PROVIDER_VERIFY: "1"
+      # Skip actual AWS operations when using mock credentials
+      TF_VAR_skip_credentials_validation: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_requesting_account_id: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_metadata_api_check: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -227,6 +258,14 @@ jobs:
       - name: 🔧 Create Terraform Plugin Cache Directory
         run: |
           mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
+      - name: 📝 Display Credential Configuration
+        run: |
+          echo "🔐 Using AWS credentials: ${{ inputs.use_aws_credentials == true && 'User-provided' || 'Mock credentials' }}"
+          echo "🌎 AWS Region: ${{ env.AWS_REGION }}"
+          if [[ "${{ inputs.use_aws_credentials }}" != "true" ]]; then
+            echo "⚠️ Using mock credentials with provider verification disabled"
+          fi
 
       - name: 🧪 Run Unit Tests (Readonly)
         working-directory: tests
@@ -240,34 +279,30 @@ jobs:
           # Ensure Go modules are up to date
           go mod tidy
 
-          # Create a mock AWS provider config if needed
-          echo "Creating mock AWS provider configuration for readonly tests..."
-          cat > aws_mock.go <<EOF
-          //go:build readonly
-
-          package helper
-
-          import (
-            "os"
-          )
-
-          func init() {
-            os.Setenv("AWS_ACCESS_KEY_ID", "mock-access-key")
-            os.Setenv("AWS_SECRET_ACCESS_KEY", "mock-secret-key")
-            os.Setenv("AWS_REGION", "us-east-1")
-            os.Setenv("TF_VAR_skip_provider_registration", "true")
-          }
-          EOF
-
           # Run the tests with appropriate tags
           # Using -v for verbose output and -count=1 to disable caching
+          echo "🧪 Running read-only unit tests with ${{ inputs.use_aws_credentials == true && 'user-provided' || 'mock' }} credentials"
           go test -v -tags 'readonly,unit' -count=1 ./modules/${{ inputs.module_name }}/unit/...
 
   ci-terratest-examples-readonly:
     name: 🧪 Examples Tests (Readonly)
     needs: [ci-module, discover-test-targets]
     runs-on: ubuntu-latest
-    if: ${{ needs.discover-test-targets.outputs.examples_tests_exist == 'true' && inputs.run_examples_tests == true }}
+    if: ${{ inputs.run_examples_tests == true && needs.discover-test-targets.outputs.examples_tests_exist == 'true' }}
+    env:
+      # Set AWS credentials based on user input or use mock credentials
+      AWS_ACCESS_KEY_ID: ${{ inputs.use_aws_credentials == true && inputs.aws_access_key != '' && inputs.aws_access_key ||
+        'mock-access-key' }}
+      AWS_SECRET_ACCESS_KEY: ${{ inputs.use_aws_credentials == true && inputs.aws_secret_key != '' && inputs.aws_secret_key
+        || 'mock-secret-key' }}
+      AWS_REGION: ${{ inputs.use_aws_credentials == true && inputs.aws_region || 'us-east-1' }}
+      # For read-only tests, we need to set these regardless of credentials source
+      TF_CLI_ARGS: "-refresh=false"
+      TF_SKIP_PROVIDER_VERIFY: "1"
+      # Skip actual AWS operations when using mock credentials
+      TF_VAR_skip_credentials_validation: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_requesting_account_id: ${{ inputs.use_aws_credentials != true && 'true' || 'false' }}
+      TF_VAR_skip_metadata_api_check: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -286,6 +321,14 @@ jobs:
       - name: 🔧 Create Terraform Plugin Cache Directory
         run: |
           mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
+
+      - name: 📝 Display Credential Configuration
+        run: |
+          echo "🔐 Using AWS credentials: ${{ inputs.use_aws_credentials == true && 'User-provided' || 'Mock credentials' }}"
+          echo "🌎 AWS Region: ${{ env.AWS_REGION }}"
+          if [[ "${{ inputs.use_aws_credentials }}" != "true" ]]; then
+            echo "⚠️ Using mock credentials with provider verification disabled"
+          fi
 
       - name: 🧪 Run Examples Tests (Readonly)
         working-directory: tests
@@ -303,63 +346,9 @@ jobs:
           # Ensure Go modules are up to date
           go mod tidy
 
-          # Create a mock AWS provider config if needed
-          echo "Creating mock AWS provider configuration for readonly tests..."
-          cat > aws_mock.go <<EOF
-          //go:build readonly
-
-          package helper
-
-          import (
-            "os"
-          )
-
-          func init() {
-            os.Setenv("AWS_ACCESS_KEY_ID", "mock-access-key")
-            os.Setenv("AWS_SECRET_ACCESS_KEY", "mock-secret-key")
-            os.Setenv("AWS_REGION", "us-east-1")
-            os.Setenv("TF_VAR_skip_provider_registration", "true")
-          }
-          EOF
-
-          # Create mock provider override for terraform
-          mkdir -p ./mocks
-          cat > ./mocks/provider_override.tf <<EOF
-          provider "aws" {
-            region                      = "us-east-1"
-            access_key                  = "mock-access-key"
-            secret_key                  = "mock-secret-key"
-            skip_credentials_validation = true
-            skip_requesting_account_id  = true
-            skip_metadata_api_check     = true
-          }
-          EOF
-
-          # Copy the mock provider to each test directory
-          if [ -d "./modules/${{ inputs.module_name }}/examples" ]; then
-            find ./modules/${{ inputs.module_name }}/examples -name "*_test.go" -exec dirname {} \; | sort -u | while read dir; do
-              cp ./mocks/provider_override.tf "$dir/"
-              echo "Added provider override to $dir"
-            done
-          fi
-
-          # Edit the Terratest helper to include special handling for readonly tests
-          if [ -f "./pkg/helper/terraform.go" ]; then
-            cat >> ./pkg/helper/terraform.go <<EOF
-
-          // SetupReadonlyTerraformOptions configures Terraform options for read-only tests
-          func SetupReadonlyTerraformOptions(t TestingT, examplePath string, vars map[string]interface{}) *terraform.Options {
-            opts := SetupTerraformOptions(t, examplePath, vars)
-            // Add special flags for readonly tests
-            opts.EnvVars["TF_CLI_ARGS"] = "-refresh=false"
-            opts.EnvVars["TF_SKIP_PROVIDER_VERIFY"] = "1"
-            return opts
-          }
-          EOF
-          fi
-
           # Run the tests with appropriate tags
           # Using -v for verbose output and -count=1 to disable caching
+          echo "🧪 Running read-only examples tests with ${{ inputs.use_aws_credentials == true && 'user-provided' || 'mock' }} credentials"
           go test -v -tags 'readonly,examples' -count=1 ./modules/${{ inputs.module_name }}/examples/...
 
   summary:
@@ -376,7 +365,16 @@ jobs:
         run: |
           echo "🚀 Module-Specific Terraform CI Complete!"
           echo "✅ Module: ${{ inputs.module_name }}"
-          echo "🔍 Detailed results available in job logs."
+
+          echo "📋 Test Execution Summary:"
+          echo "  - Module Validation: ${{ needs.ci-module.result }}"
+          echo "  - Examples Validation: ${{ needs.ci-examples.result == 'skipped' && 'Not Applicable' || needs.ci-examples.result }}"
+          echo "  - Unit Tests (Readonly): ${{ (inputs.run_unit_tests == false || needs.ci-terratest-unit-readonly.result == 'skipped') && 'Not Run' || needs.ci-terratest-unit-readonly.result }}"
+          echo "  - Examples Tests (Readonly): ${{ (inputs.run_examples_tests == false || needs.ci-terratest-examples-readonly.result == 'skipped') && 'Not Run' || needs.ci-terratest-examples-readonly.result }}"
+
+          echo "🔐 Credential Configuration:"
+          echo "  - Using AWS Credentials: ${{ inputs.use_aws_credentials == true && 'Yes (User-provided)' || 'No (Mock credentials)' }}"
+          echo "  - AWS Region: ${{ inputs.use_aws_credentials == true && inputs.aws_region || 'us-east-1 (default)' }}"
 
           # Check the status of all jobs
           if [[ "${{ needs.ci-module.result }}" != "success" ]]; then
@@ -390,16 +388,16 @@ jobs:
             exit 1
           fi
 
-          # Unit tests (readonly) may be skipped if there are no unit tests
-          if [[ "${{ needs.ci-terratest-unit-readonly.result }}" != "success" && "${{ needs.ci-terratest-unit-readonly.result }}" != "skipped" ]]; then
+          # Unit tests may be skipped if disabled or no unit tests exist
+          if [[ "${{ inputs.run_unit_tests }}" == "true" && "${{ needs.ci-terratest-unit-readonly.result }}" != "success" && "${{ needs.ci-terratest-unit-readonly.result }}" != "skipped" ]]; then
             echo "❌ Unit tests (readonly) failed"
             exit 1
           fi
 
-          # Examples tests (readonly) may be skipped if there are no examples tests or not requested
-          if [[ "${{ needs.ci-terratest-examples-readonly.result }}" != "success" && "${{ needs.ci-terratest-examples-readonly.result }}" != "skipped" ]]; then
+          # Examples tests may be skipped if disabled or no examples tests exist
+          if [[ "${{ inputs.run_examples_tests }}" == "true" && "${{ needs.ci-terratest-examples-readonly.result }}" != "success" && "${{ needs.ci-terratest-examples-readonly.result }}" != "skipped" ]]; then
             echo "❌ Examples tests (readonly) failed"
             exit 1
           fi
 
-          echo "✅ All checks passed!"
+          echo "✅ All required checks passed!"
