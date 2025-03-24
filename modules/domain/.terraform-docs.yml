@@ -1,0 +1,63 @@
+formatter: markdown table
+
+header-from: main.tf
+footer-from: ""
+
+recursive:
+  enabled: false
+  path: modules
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  {{ .Header }}
+
+  # AWS CodeArtifact Domain Terraform Module
+
+  This module manages an AWS CodeArtifact domain, which is the highest-level entity in CodeArtifact. A domain contains a collection of package repositories that can share package assets with each other based on domain-level permissions.
+
+  ## Features
+
+  - Creates a CodeArtifact domain with encryption using KMS
+  - Optionally applies domain permissions policies
+  - Supports cross-account domain configuration
+  - Implements feature flags for conditionally creating resources
+
+  ## Usage
+
+  ```hcl
+  {{ include "examples/basic/main.tf" }}
+  ```
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Modules }}
+
+  {{ .Inputs }}
+
+  {{ .Resources }}
+
+  {{ .Outputs }}
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: false
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
