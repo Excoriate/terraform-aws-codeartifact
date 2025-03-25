@@ -7,7 +7,7 @@ variable "is_enabled" {
 variable "enable_domain_permissions_policy" {
   description = "Controls whether to create a domain permissions policy."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "domain_owner" {
