@@ -1,3 +1,5 @@
+//go:build integration && examples
+
 package examples
 
 import (
@@ -43,7 +45,6 @@ func TestDeploymentOnDomainExampleWhenDefaultFixture(t *testing.T) {
 	require.Contains(t, planOutput, "aws_codeartifact_domain.this",
 		"CodeArtifact domain resource should be planned when module is enabled")
 
-	// Apply Terraform configuration
 	// Apply Terraform configuration
 	applyOutput, err := terraform.ApplyE(t, terraformOptions)
 	require.NoError(t, err, "Terraform apply failed")

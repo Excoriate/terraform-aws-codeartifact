@@ -3,4 +3,3 @@
 # In real usage, this would be a valid AWS account ID
 is_enabled = true
 domain_owner = "123456789012"
-

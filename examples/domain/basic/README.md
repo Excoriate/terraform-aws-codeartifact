@@ -131,4 +131,4 @@ make cycle-combined-features
 | domain\_policy\_document | The domain permissions policy document applied to the domain. |
 | domain\_policy\_revision | The current revision of the domain permissions policy. |
 
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK --> 
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

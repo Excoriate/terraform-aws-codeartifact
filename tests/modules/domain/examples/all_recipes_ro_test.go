@@ -1,3 +1,5 @@
+//go:build readonly && examples
+
 package examples
 
 import (
