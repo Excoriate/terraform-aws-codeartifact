@@ -1,0 +1,163 @@
+---
+formatter: markdown table
+
+header-from: main.tf
+footer-from: ""
+
+sections:
+  show:
+    - header
+    - requirements
+    - providers
+    - modules
+    - resources
+    - inputs
+    - outputs
+
+content: |-
+  # AWS CodeArtifact Domain Module
+
+  ## Overview
+
+  This Terraform module provisions and manages an AWS CodeArtifact Domain, a fundamental organizational construct for package management across multiple software ecosystems.
+
+  ### 🌐 What is an AWS CodeArtifact Domain?
+
+  An AWS CodeArtifact Domain is a high-level container that enables centralized package management across different package formats and repositories. It provides:
+
+  - **Unified Package Management**: Consolidate packages from multiple ecosystems (npm, Maven, PyPI, etc.)
+  - **Secure Artifact Storage**: Centralized, encrypted storage for software packages
+  - **Access Control**: Granular permissions management for package repositories
+  - **Cross-Account Sharing**: Ability to share packages across AWS accounts
+
+  ### 🔑 Key Domain Characteristics
+
+  - **Unique Naming**: Each domain must have a unique name within an AWS Region and Account
+  - **Maximum Name Length**: 90 characters
+  - **Encryption**: Optional KMS encryption for domain assets
+  - **Multi-Repository Support**: Can contain multiple repositories
+  - **Global Endpoint**: Provides a unique DNS endpoint for package access
+
+  ### 📦 Domain Capabilities
+
+  1. **Package Format Support**:
+     - npm
+     - Maven
+     - PyPI
+     - NuGet
+     - Cargo
+     - Ruby Gems
+     - Swift Packages
+
+  2. **Security Features**:
+     - Domain-level encryption
+     - Fine-grained access policies
+     - Integration with AWS IAM
+
+  3. **Operational Insights**:
+     - Track repository count
+     - Monitor asset size
+     - Detailed creation timestamps
+
+  ## Usage Example
+
+  ```hcl
+  module "codeartifact_domain" {
+    source = "path/to/module"
+
+    # Basic Configuration
+    is_enabled           = true
+    domain_name          = "my-company-packages"
+
+    # Optional Encryption
+    encryption_key_arn   = aws_kms_key.domain_encryption.arn
+
+    # Permissions Policy (Optional)
+    enable_domain_permissions_policy = true
+    domain_permissions_policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Principal = { AWS = "arn:aws:iam::123456789012:root" }
+          Action = ["codeartifact:CreateRepository"]
+          Resource = "*"
+        }
+      ]
+    })
+
+    # Tagging
+    tags = {
+      Environment = "production"
+      Project     = "package-management"
+      ManagedBy   = "Terraform"
+    }
+  }
+  ```
+
+  ## Domain Endpoint Structure
+
+  The domain endpoint follows this format:
+  ```
+  https://{domain-name}-{account-id}.d.codeartifact.{region}.amazonaws.com
+  ```
+
+  ## Security Considerations
+
+  - 🔒 Use KMS encryption for sensitive packages
+  - 👥 Implement least-privilege access policies
+  - 🕒 Regularly rotate authorization tokens
+  - 📊 Monitor domain asset sizes and repository counts
+
+  ## Performance and Scaling
+
+  - Supports up to 1,000 repositories per domain
+  - Centralized package metadata management
+  - Low-latency package retrieval
+  - Seamless integration with package managers
+
+  ## Compliance and Governance
+
+  - Audit trail for package operations
+  - Cross-account package sharing
+  - Centralized package version control
+  - Support for package origin restrictions
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Modules }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: replace
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: true
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
