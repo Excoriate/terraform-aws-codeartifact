@@ -1,8 +1,3 @@
-output "domain_arn" {
-  description = "The ARN of the CodeArtifact domain."
-  value       = module.this.domain_arn
-}
-
 output "domain_name" {
   description = "The name of the CodeArtifact domain."
   value       = module.this.domain_name
