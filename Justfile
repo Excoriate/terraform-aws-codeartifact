@@ -294,6 +294,7 @@ tf-lint MOD='':
     else \
         echo "🕵️ Linting module directory: {{MODULES_DIR}}/{{MOD}}"; \
         cd "{{MODULES_DIR}}/{{MOD}}" && \
+        tflint --init && \
         tflint --recursive && \
         cd - > /dev/null; \
         \
@@ -674,3 +675,10 @@ tf-test-examples-nix TAGS='readonly' MOD='default' NOCACHE='true' TIMEOUT='60s':
             exit 1; \
         fi; \
     fi"
+
+[working-directory:'ci']
+ci-terminal:
+    @echo "🚀 Starting CI terminal (powered by Dagger.io)..."
+    @dagger develop
+    @dagger functions
+    @dagger call open-terminal

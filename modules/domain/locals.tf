@@ -1,8 +1,9 @@
 locals {
   # Feature flags
   is_enabled                     = var.is_enabled
+  is_permissions_policy_enabled  = var.enable_domain_permissions_policy
   create_domain                  = local.is_enabled
-  create_domain_permissions_policy = local.is_enabled && var.enable_domain_permissions_policy
+  create_domain_permissions_policy = local.is_enabled && local.is_permissions_policy_enabled
 
   # Input validation and defaults
   domain_name           = var.domain_name
@@ -20,4 +21,7 @@ locals {
 
   # Merged tags
   tags = merge(local.default_tags, var.tags)
+
+  # Compute domain endpoint
+  domain_endpoint = local.create_domain ? "https://${local.domain_name}-${local.effective_domain_owner}.d.codeartifact.${data.aws_region.current.name}.amazonaws.com" : null
 }

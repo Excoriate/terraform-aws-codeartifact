@@ -1,29 +1,97 @@
-# Basic AWS CodeArtifact Domain Example
+# AWS CodeArtifact Domain - Basic Example
 
-This example demonstrates how to use the AWS CodeArtifact domain module to create a basic domain with minimal configuration.
+This example demonstrates how to use the AWS CodeArtifact Domain module to create and manage a CodeArtifact domain with various configurations.
 
 ## Usage
 
-```bash
-terraform init
-terraform plan
-terraform apply
+```hcl
+module "codeartifact_domain" {
+  source = "terraform-aws-modules/codeartifact/aws//modules/domain"
+
+  is_enabled  = true
+  domain_name = "my-domain"
+  kms_key_arn = aws_kms_key.domain_encryption.arn
+
+  enable_domain_permissions_policy = true
+  domain_permissions_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "codeartifact:ReadFromRepository",
+          "codeartifact:DescribeRepository",
+          "codeartifact:ListRepositories"
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::123456789012:role/DeveloperRole"
+        }
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = {
+    Environment = "development"
+    Project     = "my-project"
+  }
+}
 ```
 
-Note that this example may create resources which cost money. Run `terraform destroy` when you don't need these resources anymore.
+## Features Demonstrated in Fixtures
 
+This example includes multiple fixtures to demonstrate different domain configurations:
+
+| Fixture | Description | Use Case |
+|---------|-------------|----------|
+| `default.tfvars` | Default configuration with all features enabled | Simple domain creation with custom KMS key |
+| `disabled.tfvars` | Module entirely disabled | No resources created (for testing/staging) |
+| `with-domain-permissions.tfvars` | Domain with permissions policy | Setting domain-level access controls |
+| `custom-domain-owner.tfvars` | Domain with custom owner account | Cross-account domain sharing |
+| `no-encryption.tfvars` | Domain using default AWS encryption | Simpler setup without custom KMS |
+| `combined-features.tfvars` | Multiple features enabled simultaneously | Comprehensive domain configuration |
+
+## Testing Different Configurations
+
+Use the included Makefile to test different configurations:
+
+```bash
+# Initialize Terraform
+make init
+
+# Test default configuration
+make plan-default
+make apply-default
+make destroy-default
+
+# Test with domain permissions policy
+make plan-with-domain-permissions
+make apply-with-domain-permissions
+make destroy-with-domain-permissions
+
+# Full test cycle with all features
+make cycle-combined-features
+```
+
+## Notes
+
+- The KMS key in this example is created for demonstration purposes. In a real environment, you might want to use a key from your foundation module.
+- The domain owner in the cross-account example uses a placeholder account ID.
+- This is a basic example to demonstrate the functionality of the domain module. For more complex configurations, see the complete example.
+
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| terraform | >= 1.0.0 |
-| aws | >= 4.0.0 |
+| terraform | >= 1.3.0 |
+| aws | >= 4.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | >= 4.0.0 |
+| aws | >= 4.0 |
 
 ## Modules
 
@@ -42,19 +110,25 @@ Note that this example may create resources which cost money. Run `terraform des
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| is_enabled | Controls whether module resources should be created or not. | `bool` | `true` | no |
-| enable_domain_permissions_policy | Controls whether to create a domain permissions policy. | `bool` | `true` | no |
+| enable\_domain\_permissions\_policy | Controls whether to create a domain permissions policy. | `bool` | `true` | no |
+| is\_enabled | Controls whether module resources should be created or not. | `bool` | `true` | no |
+| domain\_owner | The AWS account ID that owns the domain. If not specified, the current account ID is used. | `string` | `null` | no |
+| use\_default\_kms | Whether to use the default AWS KMS key instead of creating a custom key. | `bool` | `false` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| domain_arn | The ARN of the CodeArtifact domain. |
-| domain_name | The name of the CodeArtifact domain. |
-| domain_owner | The AWS account ID that owns the CodeArtifact domain. |
-| domain_repository_count | The number of repositories in the CodeArtifact domain. |
-| domain_encryption_key | The ARN of the KMS key used to encrypt the domain's assets. |
-| domain_created_time | The time the domain was created. |
-| domain_asset_size_bytes | The total size of all assets in the domain, in bytes. |
-| domain_endpoint | The endpoint of the domain. |
-| is_enabled | Whether the domain module is enabled or not. | 
+| is\_enabled | Whether the module is enabled or not. |
+| domain\_arn | ARN of the CodeArtifact domain. |
+| domain\_name | Name of the CodeArtifact domain. |
+| domain\_owner | AWS account ID that owns the domain. |
+| domain\_encryptionkey | KMS encryption key ARN for CodeArtifact domain. |
+| domain\_repository\_count | Number of repositories in the domain. |
+| domain\_asset\_size | Storage size in bytes used by the domain. |
+| domain\_created\_time | Time the domain was created. |
+| domain\_endpoint | The endpoint of the CodeArtifact domain. |
+| domain\_policy\_document | The domain permissions policy document applied to the domain. |
+| domain\_policy\_revision | The current revision of the domain permissions policy. |
+
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK --> 

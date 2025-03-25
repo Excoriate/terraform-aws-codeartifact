@@ -34,8 +34,8 @@ output "domain_asset_size_bytes" {
 }
 
 output "domain_endpoint" {
-  description = "The endpoint of the domain."
-  value       = local.create_domain ? "https://${aws_codeartifact_domain.this[0].domain}-${local.effective_domain_owner}.d.codeartifact.${data.aws_region.current.name}.amazonaws.com" : null
+  description = "The endpoint of the CodeArtifact domain"
+  value       = local.domain_endpoint
 }
 
 output "is_enabled" {

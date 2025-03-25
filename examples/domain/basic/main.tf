@@ -9,6 +9,8 @@ locals {
 ################################################################################
 
 resource "aws_kms_key" "this" {
+  count = var.is_enabled && !var.use_default_kms ? 1 : 0
+
   description             = "KMS key for CodeArtifact domain encryption"
   deletion_window_in_days = 7
   enable_key_rotation     = true
@@ -58,7 +60,8 @@ module "this" {
 
   is_enabled  = var.is_enabled
   domain_name = "${local.name}-domain"
-  kms_key_arn = aws_kms_key.this.arn
+  kms_key_arn = var.use_default_kms ? null : try(aws_kms_key.this[0].arn, null)
+  domain_owner = var.domain_owner
 
   # Optional: Enable domain permissions policy
   enable_domain_permissions_policy = var.enable_domain_permissions_policy
