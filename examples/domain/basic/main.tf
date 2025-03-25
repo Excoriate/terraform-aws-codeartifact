@@ -58,9 +58,9 @@ resource "aws_kms_key" "this" {
 module "this" {
   source = "../../../modules/domain"
 
-  is_enabled  = var.is_enabled
-  domain_name = "${local.name}-domain"
-  kms_key_arn = var.use_default_kms ? null : try(aws_kms_key.this[0].arn, null)
+  is_enabled   = var.is_enabled
+  domain_name  = "${local.name}-domain"
+  kms_key_arn  = var.use_default_kms ? null : try(aws_kms_key.this[0].arn, null)
   domain_owner = var.domain_owner
 
   # Optional: Enable domain permissions policy

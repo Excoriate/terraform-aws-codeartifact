@@ -1,5 +1,5 @@
 # Combined features fixture: demonstrates multiple domain features simultaneously
-is_enabled = true
+is_enabled                       = true
 enable_domain_permissions_policy = true
 # For demonstration purposes, using a placeholder account ID, uncomment to use. Consider that this error might occur
 # ╷

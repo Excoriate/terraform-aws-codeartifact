@@ -1,7 +1,7 @@
 resource "aws_codeartifact_domain" "this" {
   count = local.create_domain ? 1 : 0
 
-  domain     = local.domain_name
+  domain         = local.domain_name
   encryption_key = var.kms_key_arn
 
   # AWS will use the default aws/codeartifact key if no encryption_key is provided

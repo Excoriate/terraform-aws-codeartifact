@@ -24,14 +24,16 @@ repos:
           (?x)^(
             .release-please-manifest\.json|
             release-please-config\.json|
-            .releaserc\.json
+            .releaserc\.json|
+            .*dagger\.json
           )$
       - id: pretty-format-json
         exclude: >
           (?x)^(
             .release-please-manifest\.json|
             release-please-config\.json|
-            .releaserc\.json
+            .releaserc\.json|
+            .*dagger\.json
           )$
       - id: check-docstring-first
         args:
