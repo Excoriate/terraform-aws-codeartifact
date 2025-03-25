@@ -1,0 +1,116 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    - resources
+
+content: |-
+  # AWS CodeArtifact Domain Permissions Module
+
+  ## Overview
+
+  This Terraform module manages permissions policies for an existing AWS CodeArtifact Domain, allowing controlled access to domain resources.
+
+  ### 🔑 Key Features
+  - **Policy Management**: Apply IAM policies to control domain access
+  - **Flexible Configuration**: Support for cross-account domain management
+  - **Controlled Access**: Fine-grained permissions management
+  - **Modular Design**: Can be used independently or with other CodeArtifact modules
+
+  ### 📋 Usage Guidelines
+  1. Identify the domain you want to manage permissions for
+  2. Create a policy document defining the desired permissions
+  3. Apply this module to set the domain permissions policy
+
+  ```hcl
+  module "codeartifact_domain_permissions" {
+    source = "path/to/module"
+
+    # Basic Configuration
+    is_enabled  = true
+    domain_name = "my-company-packages"
+
+    # Define domain permissions policy
+    policy_document = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Principal = { AWS = "arn:aws:iam::123456789012:role/DeveloperRole" }
+          Action = [
+            "codeartifact:ReadFromRepository",
+            "codeartifact:DescribeRepository",
+            "codeartifact:ListRepositories"
+          ]
+          Resource = "*"
+        }
+      ]
+    })
+
+    # Optional: Specify domain owner if different account
+    # domain_owner = "123456789012"
+
+    # Tagging
+    tags = {
+      Environment = "production"
+      Project     = "package-management"
+      ManagedBy   = "Terraform"
+    }
+  }
+  ```
+
+  ## Security Considerations
+
+  - 🔒 Follow least privilege principle in domain policies
+  - 👥 Use targeted Principal declarations instead of wildcards
+  - 🔐 Limit repository creation and deletion rights
+  - 📝 Regularly audit domain policies
+
+  ## Policy Structure Guidelines
+
+  - Define specific actions instead of using wildcards
+  - Explicitly list resources when possible
+  - Consider separating read and write permissions
+  - Use conditions to further restrict access based on tags, IP addresses, etc.
+
+  {{ .Header }}
+
+  ## Variables
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+output:
+  file: README.md
+  mode: replace
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
