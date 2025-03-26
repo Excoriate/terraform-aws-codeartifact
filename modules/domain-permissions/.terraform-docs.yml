@@ -16,16 +16,23 @@ content: |-
   This Terraform module manages permissions policies for an existing AWS CodeArtifact Domain, allowing controlled access to domain resources.
 
   ### 🔑 Key Features
-  - **Policy Management**: Apply IAM policies to control domain access
-  - **Flexible Configuration**: Support for cross-account domain management
-  - **Controlled Access**: Fine-grained permissions management
-  - **Modular Design**: Can be used independently or with other CodeArtifact modules
+  - **Policy Management**: Applies `aws_codeartifact_domain_permissions_policy` to an existing domain.
+  - **Flexible Configuration**: Constructs policy dynamically from baseline principal lists (`read_principals`, `list_repo_principals`, `authorization_token_principals`) and custom statements (`custom_policy_statements`).
+  - **Policy Override**: Allows providing a complete JSON policy document (`policy_document_override`) which takes precedence over dynamic construction.
+  - **Cross-Account Support**: Handles domain ownership via `domain_owner`.
+  - **Controlled Access**: Enables fine-grained permissions management at the domain level.
+  - **Modular Design**: Separates domain policy management from domain creation.
 
   ### 📋 Usage Guidelines
-  1. Identify the domain you want to manage permissions for
-  2. Create a policy document defining the desired permissions
-  3. Apply this module to set the domain permissions policy
+  1. Ensure the target CodeArtifact domain exists.
+  2. Provide the `domain_name`.
+  3. **Choose Policy Method:**
+     *   **Option A (Dynamic Construction):** Define principals for baseline access using `read_principals`, `list_repo_principals`, `authorization_token_principals` and/or provide specific IAM policy statement objects via `custom_policy_statements`. Leave `policy_document_override` as `null`.
+     *   **Option B (Full Override):** Provide a complete, valid JSON policy string to `policy_document_override`. The baseline and custom statement variables will be ignored.
+  4. If the domain is in another account, specify `domain_owner`.
+  5. Use `policy_revision` for optimistic locking if needed.
 
+  **Example (Dynamic Construction):**
   ```hcl
   module "codeartifact_domain_permissions" {
     source = "path/to/module"
@@ -34,10 +41,12 @@ content: |-
     is_enabled  = true
     domain_name = "my-company-packages"
 
-    # Define domain permissions policy
-    policy_document = jsonencode({
-      Version = "2012-10-17"
-      Statement = [
+    # Baseline Permissions (Example)
+    read_principals      = ["arn:aws:iam::111122223333:role/ReaderRole"]
+    list_repo_principals = ["arn:aws:iam::111122223333:role/DeveloperRole"]
+
+    # Custom Permissions (Example)
+    custom_policy_statements = [
         {
           Effect = "Allow"
           Principal = { AWS = "arn:aws:iam::123456789012:role/DeveloperRole" }

@@ -1,8 +1,10 @@
 resource "aws_codeartifact_domain_permissions_policy" "this" {
-  count = local.create_domain_permissions ? 1 : 0
+  # Use the create_policy flag defined in locals.tf
+  count = local.create_policy ? 1 : 0
 
   domain          = var.domain_name
   domain_owner    = local.effective_domain_owner
-  policy_document = var.policy_document
+  # Use the final policy document from locals, which handles the override logic
+  policy_document = local.final_policy_document
   policy_revision = var.policy_revision
 }

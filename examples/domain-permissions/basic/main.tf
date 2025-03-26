@@ -1,135 +1,29 @@
-locals {
-  region      = "us-west-2"
-  environment = "test"
-  name        = "example"
-}
+# This main.tf file demonstrates basic usage of the domain-permissions module.
+# It calls the module located in ../../../modules/domain-permissions
+# Input variables defined in variables.tf are passed to the module.
+# Different configurations can be tested using .tfvars files in the fixtures/ directory
+# (e.g., terraform plan -var-file=fixtures/read_only.tfvars)
 
-################################################################################
-# Domain (Required for domain-permissions)
-################################################################################
-
-resource "aws_kms_key" "this" {
-  count = var.is_enabled ? 1 : 0
-
-  description             = "KMS key for CodeArtifact domain encryption"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "Enable IAM User Permissions"
-        Effect = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-        }
-        Action   = "kms:*"
-        Resource = "*"
-      },
-      {
-        Sid    = "Allow CodeArtifact to use the key"
-        Effect = "Allow"
-        Principal = {
-          Service = "codeartifact.amazonaws.com"
-        }
-        Action = [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = {
-    Name        = "${local.name}-kms-key"
-    Environment = local.environment
-  }
-}
-
-# Create a domain that we'll use to set permissions on
-resource "aws_codeartifact_domain" "this" {
-  count = var.is_enabled ? 1 : 0
-
-  domain         = "${local.name}-domain"
-  encryption_key = aws_kms_key.this[0].arn
-
-  tags = {
-    Name        = "${local.name}-domain"
-    Environment = local.environment
-  }
-}
-
-################################################################################
-# Domain Permissions Module
-################################################################################
+# IMPORTANT PREREQUISITE: This example applies a policy to an *existing*
+# CodeArtifact domain. Ensure the domain specified via var.domain_name
+# (likely in a fixture file) exists in the target AWS account and region
+# before running `terraform apply`.
+# `terraform plan` can be run without the domain existing to see the generated policy.
 
 module "this" {
   source = "../../../modules/domain-permissions"
 
-  is_enabled   = var.is_enabled
-  domain_name  = var.is_enabled ? aws_codeartifact_domain.this[0].domain : "non-existent-domain"
-  domain_owner = var.domain_owner
+  # Pass through variables controlled by the example/fixtures
+  is_enabled                     = var.is_enabled
+  domain_name                    = var.domain_name # Must be provided via tfvars
+  domain_owner                   = var.domain_owner
+  read_principals                = var.read_principals
+  list_repo_principals           = var.list_repo_principals
+  authorization_token_principals = var.authorization_token_principals
+  custom_policy_statements       = var.custom_policy_statements
+  policy_revision                = var.policy_revision
+  policy_document_override       = var.policy_document_override # Pass the override variable
 
-  # The policy document is built based on the example variable value
-  policy_document = var.is_enabled && var.policy_type != "none" ? (
-    var.policy_type == "read_only" ? jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = [
-            "codeartifact:ReadFromRepository",
-            "codeartifact:DescribeRepository",
-            "codeartifact:ListRepositories"
-          ]
-          Effect = "Allow"
-          Principal = {
-            AWS = var.principal_arn != null ? var.principal_arn : data.aws_caller_identity.current.account_id
-          }
-          Resource = "*"
-        }
-      ]
-      }) : var.policy_type == "admin" ? jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = [
-            "codeartifact:*"
-          ]
-          Effect = "Allow"
-          Principal = {
-            AWS = var.principal_arn != null ? var.principal_arn : data.aws_caller_identity.current.account_id
-          }
-          Resource = "*"
-        }
-      ]
-      }) : jsonencode({
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Action = [
-            "codeartifact:ReadFromRepository",
-            "codeartifact:DescribeRepository"
-          ]
-          Effect = "Allow"
-          Principal = {
-            AWS = var.principal_arn != null ? var.principal_arn : data.aws_caller_identity.current.account_id
-          }
-          Resource = "*"
-        }
-      ]
-    })
-  ) : null
-
-  policy_revision = var.policy_revision
+  # Note: The policy is now constructed internally or uses the override.
+  # The module now constructs it internally based on the principal lists and custom statements.
 }
-
-################################################################################
-# Supporting Resources
-################################################################################
-
-data "aws_caller_identity" "current" {}

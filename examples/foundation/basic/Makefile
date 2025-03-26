@@ -84,15 +84,15 @@ plan-s3-disabled: init
 
 plan-logs-disabled: init
 	@echo "Planning with CloudWatch logs component disabled..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars
 
 plan-oidc-gitlab: init
 	@echo "Planning with oidc_gitlab fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars
 
 plan-oidc-github: init
 	@echo "Planning with oidc_github fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars
 
 # Apply commands
 apply-default: init
@@ -113,15 +113,15 @@ apply-s3-disabled: init
 
 apply-logs-disabled: init
 	@echo "Applying with CloudWatch logs component disabled..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars -auto-approve
 
 apply-oidc-gitlab: init
 	@echo "Applying with oidc_gitlab fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars -auto-approve
 
 apply-oidc-github: init
 	@echo "Applying with oidc_github fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
@@ -142,15 +142,15 @@ destroy-s3-disabled: init
 
 destroy-logs-disabled: init
 	@echo "Destroying resources with CloudWatch logs component disabled..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/logs-disabled.tfvars -auto-approve
 
 destroy-oidc-gitlab: init
 	@echo "Destroying resources with oidc_gitlab fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_gitlab.tfvars -auto-approve
 
 destroy-oidc-github: init
 	@echo "Destroying resources with oidc_github fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
 
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default

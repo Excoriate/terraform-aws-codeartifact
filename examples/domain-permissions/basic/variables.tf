@@ -1,33 +1,60 @@
 variable "is_enabled" {
-  description = "Controls whether module resources should be created or not."
+  description = "Controls whether the example resources (including the module call) are created."
   type        = bool
   default     = true
 }
 
+variable "domain_name" {
+  description = "The name of the CodeArtifact domain to apply policy to. This domain must exist."
+  type        = string
+  # No default - must be provided via tfvars.
+}
+
+variable "region" {
+  description = "AWS region for the provider."
+  type        = string
+  default     = "us-west-2" # Or another suitable default
+}
+
+# Variables to pass through to the domain-permissions module, controlled by fixtures
 variable "domain_owner" {
-  description = "The AWS account ID that owns the domain. If not specified, the current account ID is used."
+  description = "Optional domain owner account ID for the module."
   type        = string
   default     = null
 }
 
-variable "policy_type" {
-  description = "Type of policy to apply (none, read_only, default, admin)."
-  type        = string
-  default     = "default"
-  validation {
-    condition     = contains(["none", "read_only", "default", "admin"], var.policy_type)
-    error_message = "The policy_type must be one of: none, read_only, default, admin."
-  }
+variable "read_principals" {
+  description = "Optional list of principals for baseline read access (GetDomainPermissionsPolicy)."
+  type        = list(string)
+  default     = []
 }
 
-variable "principal_arn" {
-  description = "ARN of the principal (user/role) to allow in the policy. If not specified, the current account ID is used."
-  type        = string
-  default     = null
+variable "list_repo_principals" {
+  description = "Optional list of principals for baseline list repositories access."
+  type        = list(string)
+  default     = []
+}
+
+variable "authorization_token_principals" {
+  description = "Optional list of principals for baseline GetAuthorizationToken access."
+  type        = list(string)
+  default     = []
+}
+
+variable "custom_policy_statements" {
+  description = "Optional list of custom policy statements for the module."
+  type        = list(any)
+  default     = []
 }
 
 variable "policy_revision" {
-  description = "The current revision of the resource policy to be set."
+  description = "Optional policy revision for optimistic locking."
+  type        = string
+  default     = null
+}
+
+variable "policy_document_override" {
+  description = "Optional override policy document for the module."
   type        = string
   default     = null
 }
