@@ -270,3 +270,104 @@ variable "tags" {
   description = "A map of tags to assign to all resources created by this module. These tags will be applied to all resources that support tagging, helping with resource organization, cost allocation, and access control. Tags should follow your organization's tagging strategy and might include values for environment, project, owner, or other relevant categories."
   default     = {}
 }
+
+
+###################################
+# OIDC Provider Variables 🔑
+###################################
+
+variable "is_oidc_provider_enabled" {
+  description = <<-DESC
+    Controls whether to create the IAM OIDC identity provider, role, and policy attachments
+    for federated access (e.g., from GitLab CI/CD or GitHub Actions).
+    Set to `true` to enable this functionality.
+  DESC
+  type        = bool
+  default     = false
+}
+
+variable "oidc_provider_url" {
+  description = <<-DESC
+    The URL of the OIDC identity provider (e.g., `https://gitlab.com` or `https://token.actions.githubusercontent.com`).
+    Required if `is_oidc_provider_enabled` is true. Must include `https://`.
+  DESC
+  type        = string
+  default     = null # Required if enabled
+
+  validation {
+    condition     = var.is_oidc_provider_enabled == false || (var.oidc_provider_url != null && can(regex("^https://", var.oidc_provider_url)))
+    error_message = "If OIDC provider is enabled, oidc_provider_url must be provided and start with 'https://'."
+  }
+}
+
+variable "oidc_client_id_list" {
+  description = <<-DESC
+    List of client IDs (audiences) registered with the OIDC provider.
+    For GitHub Actions, typically `["sts.amazonaws.com"]`.
+    For GitLab, often the GitLab instance URL (e.g., `["https://gitlab.com"]`) or specific application IDs.
+  DESC
+  type        = list(string)
+  default     = ["sts.amazonaws.com"] # Common default for GitHub Actions
+}
+
+variable "oidc_thumbprint_list" {
+  description = <<-DESC
+    Optional list of server certificate thumbprints for the OIDC provider. If empty, Terraform will attempt
+    to automatically fetch the thumbprint from the provider's URL using the tls_certificate data source.
+    AWS might ignore this for well-known providers like GitHub/GitLab. Provide explicitly if needed for other providers or specific CAs.
+  DESC
+  type        = list(string)
+  default     = []
+}
+
+variable "oidc_role_name" {
+  description = "The name for the IAM role that the OIDC provider will assume."
+  type        = string
+  default     = "oidc-federated-role" # Consider making more specific, e.g., gitlab-oidc-role
+}
+
+variable "oidc_role_description" {
+  description = "Optional description for the OIDC IAM role."
+  type        = string
+  default     = "IAM role for OIDC federation"
+}
+
+variable "oidc_role_max_session_duration" {
+  description = "Maximum session duration (in seconds) for the OIDC IAM role (3600-43200)."
+  type        = number
+  default     = 3600 # 1 hour
+
+  validation {
+    condition     = var.oidc_role_max_session_duration >= 3600 && var.oidc_role_max_session_duration <= 43200
+    error_message = "The maximum session duration must be between 3600 (1 hour) and 43200 (12 hours) seconds."
+  }
+}
+
+variable "oidc_role_condition_string_like" {
+  description = <<-DESC
+    Map defining the StringLike conditions for the AssumeRoleWithWebIdentity policy statement.
+    Keys are the condition variables (e.g., `gitlab.com:sub` or `token.actions.githubusercontent.com:sub`),
+    and values are lists of allowed patterns (e.g., `["project_path:mygroup/myproject:ref_type:branch:ref:*"]` for GitLab,
+    `["repo:MyOrg/MyRepo:ref:refs/heads/main"]` for GitHub). Required if `is_oidc_provider_enabled` is true.
+    Example for GitLab: `{"gitlab.com:sub" = ["project_path:yourgroup/yourproject:ref_type:branch:ref:main"]}`
+    Example for GitHub: `{"token.actions.githubusercontent.com:sub" = ["repo:yourorg/yourrepo:ref:refs/heads/main"]}`
+  DESC
+  type        = map(list(string))
+  default     = {} # Required if enabled, validation in locals/data source
+
+  validation {
+    condition     = var.is_oidc_provider_enabled == false || length(keys(var.oidc_role_condition_string_like)) > 0
+    error_message = "If OIDC provider is enabled, oidc_role_condition_string_like must be provided with at least one condition."
+  }
+}
+
+variable "oidc_role_attach_policy_arns" {
+  description = "List of managed IAM policy ARNs to attach to the OIDC role."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for arn in var.oidc_role_attach_policy_arns : can(regex("^arn:aws:iam::([0-9]{12}|aws):policy/", arn))])
+    error_message = "Each item in oidc_role_attach_policy_arns must be a valid IAM policy ARN."
+  }
+}

@@ -12,6 +12,7 @@ graph TD
         Encryption[Encryption Service]
         Storage[Storage Service]
         Logging[Logging Service]
+        OIDC[OIDC Provider & Role (Optional)] // Added OIDC
     end
 
     subgraph "Domain Layer"
@@ -100,7 +101,7 @@ graph TD
     AuditLogs --> Storage
 
     classDef foundation fill:#FFD700,stroke:#232F3E,color:#232F3E;
-    class Encryption,Storage,Logging foundation;
+    class Encryption,Storage,Logging,OIDC foundation; // Added OIDC to classDef
 ```
 
 ## Foundation Layer
@@ -156,6 +157,19 @@ The logging service captures operational and audit events across the artifact ma
   * **Operational Troubleshooting**: Debug issues with artifact retrieval or publishing
   * **Compliance Reporting**: Generate activity reports for compliance requirements
   * **Usage Analytics**: Analyze artifact consumption and publishing patterns
+
+#### Federated Access (OIDC) (Optional)
+
+Provides secure, keyless authentication for external systems like CI/CD pipelines (GitLab, GitHub Actions) to interact with AWS resources.
+
+* **Capabilities**:
+  * Creates an IAM OIDC Identity Provider linked to an external IdP (e.g., GitLab.com, GitHub Actions).
+  * Creates an IAM Role trustable by the OIDC provider based on configurable conditions (e.g., specific repository, branch).
+  * Attaches specified IAM policies to the role, granting necessary permissions.
+
+* **Use Cases**:
+  * **CI/CD Pipelines**: Allow GitLab runners or GitHub Actions workflows to assume the IAM role to deploy Terraform, publish artifacts, or interact with other AWS services without storing long-lived AWS credentials.
+  * **Secure Federation**: Establish trust between AWS and external OIDC-compliant identity providers.
 
 ### Foundation Use Cases
 
@@ -233,6 +247,9 @@ The foundation layer provides essential services to other layers in the architec
    * Logging provides data for operational dashboards
    * Storage maintains historical monitoring data
    * Encryption protects sensitive monitoring information
+
+5. **CI/CD Layer Integration**:
+   * OIDC Provider/Role enables secure authentication for pipelines interacting with CodeArtifact or other AWS services managed via Terraform.
 
 ## Implementation Flexibility
 

@@ -124,3 +124,53 @@ resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this[0].id
   policy = local.bucket_policy
 }
+
+
+###################################
+# OIDC Provider and Role 🔑
+# ----------------------------------------------------
+#
+# Creates an IAM OIDC provider and an associated role
+# for federated access from CI/CD systems like
+# GitLab or GitHub Actions.
+#
+###################################
+
+resource "aws_iam_openid_connect_provider" "oidc" {
+  count = local.is_oidc_provider_enabled ? 1 : 0
+
+  url             = var.oidc_provider_url
+  client_id_list  = var.oidc_client_id_list
+  thumbprint_list = local.oidc_thumbprint_list_final # Uses fetched thumbprint if var.oidc_thumbprint_list is empty
+
+  tags = merge(
+    local.common_tags,
+    { Name = "${var.oidc_provider_url}-provider" } # Simple name tag
+  )
+}
+
+resource "aws_iam_role" "oidc" {
+  count = local.is_oidc_provider_enabled ? 1 : 0
+
+  name                 = var.oidc_role_name
+  description          = var.oidc_role_description
+  assume_role_policy   = data.aws_iam_policy_document.oidc_assume_role[0].json
+  max_session_duration = var.oidc_role_max_session_duration
+  tags                 = merge(
+    local.common_tags,
+    { Name = var.oidc_role_name }
+  )
+
+  # Ensure OIDC provider exists before creating the role that trusts it
+  depends_on = [aws_iam_openid_connect_provider.oidc]
+}
+
+resource "aws_iam_role_policy_attachment" "oidc" {
+  # Create an attachment for each policy ARN provided, only if OIDC is enabled
+  for_each = local.is_oidc_provider_enabled ? toset(var.oidc_role_attach_policy_arns) : toset([])
+
+  role       = aws_iam_role.oidc[0].name
+  policy_arn = each.value
+
+  depends_on = [aws_iam_role.oidc] # Ensure role exists before attaching policies
+}
