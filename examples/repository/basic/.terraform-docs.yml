@@ -1,0 +1,73 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Show modules called by this example (which is just the repository module)
+    - modules
+    # Do not show resources directly created by the example itself (usually none)
+    # - resources
+
+content: |-
+  # Basic Example: AWS CodeArtifact Repository Module
+
+  ## Overview
+  > **Note:** This example demonstrates the basic usage of the `repository` module found in `modules/repository`.
+
+  ### 🔑 Key Features Demonstrated
+  - Calling the `repository` module with required inputs (`domain_name`, `repository_name`).
+  - Passing optional inputs like `tags`, `description`.
+  - How to use fixtures (`fixtures/*.tfvars`) with `terraform plan/apply -var-file=...` to test different module configurations (hosted, proxy, policy, etc.).
+
+  ### 📋 Usage Guidelines
+  1. **Prerequisites:** Ensure you have an existing CodeArtifact Domain.
+  2. **Configure:** Create a `.tfvars` file (or use one from `fixtures/`) specifying at least the `domain_name`.
+     ```tfvars
+     # example.tfvars
+     domain_name = "your-existing-codeartifact-domain"
+     region      = "us-east-1" # Optional override
+     # Add other variables to test different features
+     # e.g., to test public proxy:
+     # external_connections = ["public:npmjs"]
+     ```
+  3. **Initialize:** Run `terraform init`.
+  4. **Plan:** Run `terraform plan -var-file=example.tfvars`.
+  5. **Apply:** Run `terraform apply -var-file=example.tfvars`.
+  6. **Makefile:** Alternatively, use the provided `Makefile` targets (e.g., `make plan-hosted`, `make apply-public-proxy`). Remember to set `domain_name` in the corresponding fixture file first.
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
