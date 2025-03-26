@@ -1,0 +1,94 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    - resources
+
+content: |-
+  # Terraform Module: AWS CodeArtifact Repository Permissions
+
+  ## Overview
+  > **Note:** This module manages the resource policy for an **existing** AWS CodeArtifact repository. It allows defining baseline permissions for common access patterns (read, describe, auth token) and merging additional custom policy statements.
+
+  ### 🔑 Key Features
+  - Applies `aws_codeartifact_repository_permissions_policy` to a specified repository.
+  - Constructs policy dynamically based on baseline principal lists (`read_principals`, `describe_principals`, `authorization_token_principals`).
+  - Allows merging custom IAM policy statements (`custom_policy_statements`).
+  - Supports cross-account scenarios via `domain_owner`.
+  - Conditional creation via `is_enabled` flag.
+
+  ### 📋 Usage Guidelines
+  1. Ensure the target CodeArtifact domain and repository already exist.
+  2. Provide the `domain_name` and `repository_name`.
+  3. Define principals for baseline access using `read_principals`, `describe_principals`, and/or `authorization_token_principals`.
+  4. Optionally, provide specific IAM policy statement objects via `custom_policy_statements` for more granular control.
+  5. If the domain is in another account, specify `domain_owner`.
+  6. Use `policy_revision` for optimistic locking if managing an existing policy.
+
+  ```hcl
+  module "repo_policy" {
+    source = "../path/to/repository-permissions"
+
+    is_enabled      = true
+    domain_name     = "my-existing-domain"
+    repository_name = "my-existing-repo"
+
+    # Baseline permissions
+    read_principals     = ["arn:aws:iam::111122223333:role/ReaderRole"]
+    describe_principals = ["arn:aws:iam::111122223333:role/CICDRole"]
+    authorization_token_principals = ["arn:aws:iam::111122223333:role/DeveloperRole"]
+
+    # Custom statement
+    custom_policy_statements = [
+      {
+        Sid    = "AllowTeamAPublish",
+        Effect = "Allow",
+        Principal = { Type = "AWS", Identifiers = ["arn:aws:iam::111122223333:role/TeamAPublisher"] },
+        Action = [
+          "codeartifact:PublishPackageVersion",
+          "codeartifact:PutPackageMetadata"
+          # Add other publish-related actions as needed
+          ],
+        Resource = "*" # Resource is typically "*" in repository policies
+      }
+    ]
+  }
+  ```
+
+  {{ .Header }}
+
+  ## Variables
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+output:
+  file: README.md
+  mode: inject # Use inject to add docs to README.md
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

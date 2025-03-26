@@ -20,7 +20,7 @@ resource "aws_codeartifact_repository" "this" {
     # Convert to set for dynamic block compatibility if needed, though list should work.
     for_each = var.external_connections == null ? [] : var.external_connections
     content {
-      external_connection = external_connections.value
+      external_connection_name = external_connections.value
     }
   }
 }
