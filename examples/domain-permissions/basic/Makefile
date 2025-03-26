@@ -16,7 +16,8 @@ help:
 	@echo "Domain Permissions - Basic Example"
 	@echo ""
 	@echo "Usage: make <target> [AWS_REGION=your-region]"
-	@echo "Ensure 'domain_name' is set to an EXISTING domain in the relevant fixtures/*.tfvars file before running apply/destroy/cycle targets."
+	@echo "This example is fully self-contained and creates its own CodeArtifact domain."
+	@echo "Each fixture demonstrates different domain permission configurations."
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make init                         - Initialize Terraform"
@@ -42,14 +43,14 @@ help:
 	@echo "  make apply-override               - Apply using the policy_document_override"
 	@echo ""
 	@echo "  Destroy commands (terraform destroy -auto-approve):"
-	@echo "  make destroy-default              - Destroy policy (resets to default AWS behavior)"
-	@echo "  make destroy-disabled             - Destroy (no-op) with module disabled"
-	@echo "  make destroy-read-only            - Destroy policy"
-	@echo "  make destroy-list-only            - Destroy policy"
-	@echo "  make destroy-cross-account        - Destroy policy"
-	@echo "  make destroy-baseline-plus-custom - Destroy policy"
-	@echo "  make destroy-custom-only          - Destroy policy"
-	@echo "  make destroy-override             - Destroy policy using override fixture"
+	@echo "  make destroy-default              - Destroy resources with default configuration"
+	@echo "  make destroy-disabled             - Destroy resources with module disabled"
+	@echo "  make destroy-read-only            - Destroy resources with read-only permissions"
+	@echo "  make destroy-list-only            - Destroy resources with list-only permissions"
+	@echo "  make destroy-cross-account        - Destroy resources with cross-account permissions"
+	@echo "  make destroy-baseline-plus-custom - Destroy resources with baseline + custom permissions"
+	@echo "  make destroy-custom-only          - Destroy resources with custom permissions only"
+	@echo "  make destroy-override             - Destroy resources with override permissions"
 	@echo ""
 	@echo "  Complete cycle commands (plan, apply, and destroy):"
 	@echo "  make cycle-default                - Run full cycle with default settings"
@@ -75,83 +76,83 @@ init:
 # Plan commands
 plan-default: init
 	@echo "Planning with default fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars
 plan-disabled: init
 	@echo "Planning with disabled fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
 plan-read-only: init
 	@echo "Planning with read_only fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars
 plan-list-only: init
 	@echo "Planning with list_only fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars
 plan-cross-account: init
 	@echo "Planning with cross_account fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars
 plan-baseline-plus-custom: init
 	@echo "Planning with baseline_plus_custom fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars
 plan-custom-only: init
 	@echo "Planning with custom_only fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars
 
 plan-override: init
 	@echo "Planning with override fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/override.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/override.tfvars
 
 # Apply commands
 apply-default: init
 	@echo "Applying with default fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 apply-disabled: init
 	@echo "Applying with disabled fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 apply-read-only: init
 	@echo "Applying with read_only fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars -auto-approve
 apply-list-only: init
 	@echo "Applying with list_only fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars -auto-approve
 apply-cross-account: init
 	@echo "Applying with cross_account fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars -auto-approve
 apply-baseline-plus-custom: init
 	@echo "Applying with baseline_plus_custom fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars -auto-approve
 apply-custom-only: init
 	@echo "Applying with custom_only fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars -auto-approve
 
 apply-override: init
 	@echo "Applying with override fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/override.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/override.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
 	@echo "Destroying resources with default fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 destroy-disabled: init
 	@echo "Destroying resources with disabled fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 destroy-read-only: init
 	@echo "Destroying resources with read_only fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/read_only.tfvars -auto-approve
 destroy-list-only: init
 	@echo "Destroying resources with list_only fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/list_only.tfvars -auto-approve
 destroy-cross-account: init
 	@echo "Destroying resources with cross_account fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/cross_account.tfvars -auto-approve
 destroy-baseline-plus-custom: init
 	@echo "Destroying resources with baseline_plus_custom fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/baseline_plus_custom.tfvars -auto-approve
 destroy-custom-only: init
 	@echo "Destroying resources with custom_only fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom_only.tfvars -auto-approve
 
 destroy-override: init
 	@echo "Destroying resources with override fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/override.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/override.tfvars -auto-approve
 
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default

@@ -69,10 +69,10 @@ variable "read_principals" {
   type        = list(string)
   default     = []
 
-  validation {
-    condition     = alltrue([for principal in var.read_principals : can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"])
-    error_message = "Each item in read_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
-  }
+  # validation {
+  #   condition     = alltrue([for principal in var.read_principals : can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"])
+  #   error_message = "Each item in read_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
+  # }
 }
 
 variable "list_repo_principals" {

@@ -1,13 +1,16 @@
 data "aws_caller_identity" "current" {}
+
 data "aws_partition" "current" {}
+
 data "aws_region" "current" {}
 
-# Construct the combined policy document from baseline principals and custom statements
+// Construct the combined policy document from baseline principals and custom statements
 data "aws_iam_policy_document" "combined" {
-  # Only generate the combined document if the module is enabled AND no override is provided.
+  // Only generate the combined document if the module is enabled AND no override is provided.
   count = local.create_combined_policy_doc ? 1 : 0
 
-  # Baseline: Read Domain Policy Principals
+  // Baseline: Read Domain Policy Principals
+  // This statement allows specified AWS principals to read the domain permissions policy.
   dynamic "statement" {
     for_each = length(var.read_principals) > 0 ? [1] : []
     content {
@@ -20,11 +23,12 @@ data "aws_iam_policy_document" "combined" {
         type        = "AWS"
         identifiers = var.read_principals
       }
-      resources = [local.domain_arn] # Action applies to the domain ARN
+      resources = [local.domain_arn] // Action applies to the domain ARN
     }
   }
 
-  # Baseline: List Repositories Principals
+  // Baseline: List Repositories Principals
+  // This statement allows specified AWS principals to list repositories within the domain.
   dynamic "statement" {
     for_each = length(var.list_repo_principals) > 0 ? [1] : []
     content {
@@ -37,11 +41,12 @@ data "aws_iam_policy_document" "combined" {
         type        = "AWS"
         identifiers = var.list_repo_principals
       }
-      resources = [local.domain_arn] # Action applies to the domain ARN
+      resources = [local.domain_arn] // Action applies to the domain ARN
     }
   }
 
-  # Baseline: Get Authorization Token Principals
+  // Baseline: Get Authorization Token Principals
+  // This statement allows specified AWS principals to obtain an authorization token and requires a companion action.
   dynamic "statement" {
     for_each = length(var.authorization_token_principals) > 0 ? [1] : []
     content {
@@ -49,17 +54,18 @@ data "aws_iam_policy_document" "combined" {
       effect = "Allow"
       actions = [
         "codeartifact:GetAuthorizationToken",
-        "sts:GetServiceBearerToken" # Required companion action
+        "sts:GetServiceBearerToken" // Required companion action
       ]
       principals {
         type        = "AWS"
         identifiers = var.authorization_token_principals
       }
-      resources = ["*"] # These actions require "*" resource in domain policy
+      resources = ["*"] // These actions require "*" resource in domain policy
     }
   }
 
-  # Custom Policy Statements (merged in)
+  // Custom Policy Statements (merged in)
+  // This section allows for the inclusion of custom policy statements defined by the user.
   dynamic "statement" {
     for_each = var.custom_policy_statements
     content {

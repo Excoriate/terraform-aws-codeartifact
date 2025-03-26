@@ -71,71 +71,71 @@ init:
 # Plan commands
 plan-default: init
 	@echo "Planning with default fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars
 plan-disabled: init
 	@echo "Planning with disabled fixture (module entirely disabled)..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
 plan-hosted: init
 	@echo "Planning with hosted fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars
 plan-internal-proxy: init
 	@echo "Planning with internal_proxy fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars
 plan-public-proxy: init
 	@echo "Planning with public_proxy fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars
 plan-combined-proxy: init
 	@echo "Planning with combined_proxy fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars
 plan-with-policy: init
 	@echo "Planning with with_policy fixture..."
-	terraform plan -var="region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars
 
 # Apply commands
 apply-default: init
 	@echo "Applying with default fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 apply-disabled: init
 	@echo "Applying with disabled fixture (module entirely disabled)..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 apply-hosted: init
 	@echo "Applying with hosted fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars -auto-approve
 apply-internal-proxy: init
 	@echo "Applying with internal_proxy fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars -auto-approve
 apply-public-proxy: init
 	@echo "Applying with public_proxy fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars -auto-approve
 apply-combined-proxy: init
 	@echo "Applying with combined_proxy fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars -auto-approve
 apply-with-policy: init
 	@echo "Applying with with_policy fixture..."
-	terraform apply -var="region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
 	@echo "Destroying resources with default fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 destroy-disabled: init
 	@echo "Destroying resources with disabled fixture (module entirely disabled)..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 destroy-hosted: init
 	@echo "Destroying resources with hosted fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/hosted.tfvars -auto-approve
 destroy-internal-proxy: init
 	@echo "Destroying resources with internal_proxy fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/internal_proxy.tfvars -auto-approve
 destroy-public-proxy: init
 	@echo "Destroying resources with public_proxy fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/public_proxy.tfvars -auto-approve
 destroy-combined-proxy: init
 	@echo "Destroying resources with combined_proxy fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined_proxy.tfvars -auto-approve
 destroy-with-policy: init
 	@echo "Destroying resources with with_policy fixture..."
-	terraform destroy -var="region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
 
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default

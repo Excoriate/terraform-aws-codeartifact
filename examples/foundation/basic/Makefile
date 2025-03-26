@@ -68,19 +68,19 @@ init:
 # Plan commands
 plan-default: init
 	@echo "Planning with default fixture (all components enabled)..."
-	terraform plan -var-file=fixtures/default.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars
 
 plan-disabled: init
 	@echo "Planning with disabled fixture (module entirely disabled)..."
-	terraform plan -var-file=fixtures/disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
 
 plan-kms-disabled: init
 	@echo "Planning with KMS component disabled..."
-	terraform plan -var-file=fixtures/kms-disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/kms-disabled.tfvars
 
 plan-s3-disabled: init
 	@echo "Planning with S3 bucket component disabled..."
-	terraform plan -var-file=fixtures/s3-disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/s3-disabled.tfvars
 
 plan-logs-disabled: init
 	@echo "Planning with CloudWatch logs component disabled..."
@@ -97,19 +97,19 @@ plan-oidc-github: init
 # Apply commands
 apply-default: init
 	@echo "Applying with default fixture (all components enabled)..."
-	terraform apply -var-file=fixtures/default.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 
 apply-disabled: init
 	@echo "Applying with disabled fixture (module entirely disabled)..."
-	terraform apply -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 
 apply-kms-disabled: init
 	@echo "Applying with KMS component disabled..."
-	terraform apply -var-file=fixtures/kms-disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/kms-disabled.tfvars -auto-approve
 
 apply-s3-disabled: init
 	@echo "Applying with S3 bucket component disabled..."
-	terraform apply -var-file=fixtures/s3-disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/s3-disabled.tfvars -auto-approve
 
 apply-logs-disabled: init
 	@echo "Applying with CloudWatch logs component disabled..."
@@ -126,19 +126,19 @@ apply-oidc-github: init
 # Destroy commands
 destroy-default: init
 	@echo "Destroying resources with default fixture (all components enabled)..."
-	terraform destroy -var-file=fixtures/default.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 
 destroy-disabled: init
 	@echo "Destroying resources with disabled fixture (module entirely disabled)..."
-	terraform destroy -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 
 destroy-kms-disabled: init
 	@echo "Destroying resources with KMS component disabled..."
-	terraform destroy -var-file=fixtures/kms-disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/kms-disabled.tfvars -auto-approve
 
 destroy-s3-disabled: init
 	@echo "Destroying resources with S3 bucket component disabled..."
-	terraform destroy -var-file=fixtures/s3-disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/s3-disabled.tfvars -auto-approve
 
 destroy-logs-disabled: init
 	@echo "Destroying resources with CloudWatch logs component disabled..."
