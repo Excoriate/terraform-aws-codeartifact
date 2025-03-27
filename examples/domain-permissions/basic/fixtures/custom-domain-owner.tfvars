@@ -2,3 +2,4 @@
 is_enabled   = true
 policy_type  = "default"
 domain_owner = "123456789012"
+domain_name  = "example-domain"

@@ -6,11 +6,28 @@ data "aws_region" "current" {}
 
 // Construct the combined policy document from baseline principals and custom statements
 data "aws_iam_policy_document" "combined" {
-  // Only generate the combined document if the module is enabled AND no override is provided.
+  # Only generate the combined document if the module is enabled AND no override is provided.
   count = local.create_combined_policy_doc ? 1 : 0
 
-  // Baseline: Read Domain Policy Principals
-  // This statement allows specified AWS principals to read the domain permissions policy.
+  # Default statement: Ensure the policy is never empty and owner can always read the policy.
+  # This helps prevent "ValidationException: Policy document isn't a valid policy document"
+  # when only minimal or potentially insufficient permissions are specified via variables.
+  statement {
+    sid    = "DefaultOwnerReadDomainPolicy"
+    effect = "Allow"
+    actions = [
+      "codeartifact:GetDomainPermissionsPolicy",
+      "codeartifact:ListRepositoriesInDomain" # Add a functional permission
+    ]
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root"] # Grant to the account root executing Terraform
+    }
+    resources = [local.domain_arn]
+  }
+
+  # Baseline: Read Domain Policy Principals
+  # This statement allows specified AWS principals to read the domain permissions policy.
   dynamic "statement" {
     for_each = length(var.read_principals) > 0 ? [1] : []
     content {

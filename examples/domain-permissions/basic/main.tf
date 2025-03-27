@@ -15,6 +15,7 @@ data "aws_caller_identity" "current" {}
 
 # Create a CodeArtifact domain for testing
 resource "aws_codeartifact_domain" "this" {
+  count = var.is_enabled ? 1 : 0
   domain = var.domain_name != "" ? var.domain_name : "example-domain"
 
   # Optional encryption configuration
@@ -29,11 +30,13 @@ resource "aws_codeartifact_domain" "this" {
 }
 
 module "this" {
+  # Conditionally create the module resources based on the example's is_enabled flag
+  count  = var.is_enabled ? 1 : 0
   source = "../../../modules/domain-permissions"
 
   # Pass through variables controlled by the example/fixtures
   is_enabled                     = var.is_enabled
-  domain_name                    = aws_codeartifact_domain.this.domain
+  domain_name                    = join("",  [for d in aws_codeartifact_domain.this: d.domain])
   domain_owner                   = var.domain_owner != "" ? var.domain_owner : data.aws_caller_identity.current.account_id
   # Use the current account ID for read_principals if none provided
   read_principals                = length(var.read_principals) > 0 ? var.read_principals : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
@@ -43,6 +46,5 @@ module "this" {
   policy_revision                = var.policy_revision
   policy_document_override       = var.policy_document_override # Pass the override variable
 
-  # Note: The policy is now constructed internally or uses the override.
-  # The module now constructs it internally based on the principal lists and custom statements.
+  depends_on = [ aws_codeartifact_domain.this ]
 }
