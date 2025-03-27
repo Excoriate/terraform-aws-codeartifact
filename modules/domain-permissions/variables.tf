@@ -86,8 +86,12 @@ variable "list_repo_principals" {
   default     = []
 
   validation {
-    condition     = alltrue([for principal in var.list_repo_principals : can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"])
-    error_message = "Each item in list_repo_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
+    # Use ternary operator to avoid iteration when null
+    condition     = var.list_repo_principals == null ? true : alltrue([
+      for principal in var.list_repo_principals :
+      can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
+    ])
+    error_message = "Each item in list_repo_principals must be null or a valid IAM principal ARN (account root, user, or role) or '*'."
   }
 }
 
@@ -102,8 +106,12 @@ variable "authorization_token_principals" {
   default     = []
 
   validation {
-    condition     = alltrue([for principal in var.authorization_token_principals : can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"])
-    error_message = "Each item in authorization_token_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
+    # Use ternary operator to avoid iteration when null
+    condition     = var.authorization_token_principals == null ? true : alltrue([
+      for principal in var.authorization_token_principals :
+      can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
+    ])
+    error_message = "Each item in authorization_token_principals must be null or a valid IAM principal ARN (account root, user, or role) or '*'."
   }
 }
 
@@ -129,12 +137,15 @@ variable "custom_policy_statements" {
   default     = []
 
   validation {
-    # Basic check for required keys in each statement object
-    condition = alltrue([
+    # Use ternary operator to avoid iteration when null
+    condition = var.custom_policy_statements == null ? true : alltrue([
       for stmt in var.custom_policy_statements :
-      lookup(stmt, "Effect", null) != null && contains(["Allow", "Deny"], lookup(stmt, "Effect", "")) &&
-      lookup(stmt, "Action", null) != null && try(length(lookup(stmt, "Action", [])), 0) > 0 &&
-      lookup(stmt, "Resource", null) != null && try(length(lookup(stmt, "Resource", [])), 0) > 0
+      lookup(stmt, "Effect", null) != null &&
+      contains(["Allow", "Deny"], lookup(stmt, "Effect", "")) &&
+      lookup(stmt, "Action", null) != null &&
+      try(length(lookup(stmt, "Action", [])), 0) > 0 &&
+      lookup(stmt, "Resource", null) != null &&
+      try(length(lookup(stmt, "Resource", [])), 0) > 0
     ])
     error_message = "Each custom_policy_statement must be an object containing at least 'Effect' ('Allow' or 'Deny'), 'Action' (list of strings), and 'Resource' (list of strings)."
   }
