@@ -54,16 +54,37 @@ This is the sole AWS resource managed by this module.
 
 ### Policy Definition Methods
 
-The module offers flexibility in defining the policy content:
+The module determines the final policy document (`local.final_policy_document`) using the following logic:
 
-1.  **Dynamic Construction**:
-    *   Uses inputs: `read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`.
-    *   The module internally uses `data "aws_iam_policy_document"` to assemble these inputs into a final JSON policy.
-    *   Suitable for defining common access patterns combined with specific custom rules.
-2.  **Policy Override**:
-    *   Uses input: `policy_document_override`.
-    *   If provided, this complete JSON string is used directly, ignoring the dynamic construction inputs.
-    *   Suitable when the entire policy is managed externally or has complex logic not easily represented by the dynamic inputs.
+1.  **Policy Override (Highest Precedence)**:
+    *   If `var.policy_document_override` is provided (not `null`), its value is used directly as the final policy document.
+    *   All dynamic construction inputs (`read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`) are ignored in this case.
+    *   Suitable when the entire policy is managed externally or requires complex structure beyond the dynamic inputs.
+
+2.  **Dynamic Construction (Used if Override is `null`)**:
+    *   If `var.policy_document_override` is `null`, the module attempts to construct a policy using the `data "aws_iam_policy_document" "combined"` data source.
+    *   This data source is evaluated *only* if `var.is_enabled` is true and `var.policy_document_override` is `null`.
+    *   The constructed policy *always* includes a default statement (`Sid = "DefaultOwnerReadDomainPolicy"`) granting the domain owner (the AWS account executing Terraform) `codeartifact:GetDomainPermissionsPolicy` and `codeartifact:ListRepositoriesInDomain` permissions on the domain.
+    *   It *conditionally* adds further statements based on the provided principal lists:
+        *   If `var.read_principals` is provided, a statement granting `codeartifact:GetDomainPermissionsPolicy` is added.
+        *   If `var.list_repo_principals` is provided, a statement granting `codeartifact:ListRepositoriesInDomain` is added.
+        *   If `var.authorization_token_principals` is provided, a statement granting `codeartifact:GetAuthorizationToken` and `sts:GetServiceBearerToken` is added.
+        *   If `var.custom_policy_statements` is provided, each statement object in the list is added.
+    *   The resulting JSON from this data source becomes the final policy document.
+    *   Suitable for defining common access patterns combined with specific custom rules, ensuring a minimal valid policy even with few inputs.
+
+### Resource Creation Condition
+
+The `aws_codeartifact_domain_permissions_policy` resource itself is created (`count = 1`) based on the `local.create_policy` flag, which requires:
+*   `var.is_enabled` must be `true`.
+*   AND *either* `var.policy_document_override` must be provided, *or* at least one of the dynamic construction inputs (`read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`) must be provided (i.e., not null/empty). If only the default statement would be generated, the policy resource is *not* created unless explicitly triggered by one of these inputs or the override. *(Self-correction during thought: The `local.create_policy` logic was updated. It creates if override is set OR if `has_baseline_inputs` is true. `has_baseline_inputs` checks if any of the dynamic lists have length > 0. So, if only defaults are used and no dynamic inputs are provided, `create_policy` is false, and no policy resource is created unless override is used. This needs clarification.)*
+
+**Correction:** The `aws_codeartifact_domain_permissions_policy` resource itself is created (`count = 1`) based on the `local.create_policy` flag. This flag is true if:
+*   `var.is_enabled` is true.
+*   AND *either*:
+    *   `var.policy_document_override` is provided (not `null`).
+    *   OR at least one of the dynamic construction inputs (`read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`) has a non-empty list provided (`local.has_baseline_inputs` is true).
+*   **Note:** If `var.is_enabled` is true but `policy_document_override` is `null` and all dynamic input lists are empty, the policy resource will *not* be created, even though the data source *would* generate a default policy if evaluated.
 
 ### Integration with Other Layers
 
@@ -75,7 +96,8 @@ The module offers flexibility in defining the policy content:
 ## Implementation Details
 
 *   **Main Resource**: `aws_codeartifact_domain_permissions_policy`
-*   **Key Inputs**: `domain_name`, `domain_owner`, `policy_document_override` OR (`read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`), `policy_revision`, `is_enabled`.
+*   **Key Inputs**: `is_enabled`, `domain_name`, `domain_owner`, `policy_document_override`, `read_principals`, `list_repo_principals`, `authorization_token_principals`, `custom_policy_statements`, `policy_revision`.
+*   **Key Logic**: `local.create_policy`, `local.final_policy_document`, `data.aws_iam_policy_document.combined`.
 *   **Key Outputs**: `policy_revision`, `resource_arn`, `policy_document`.
 
 ## Conclusion

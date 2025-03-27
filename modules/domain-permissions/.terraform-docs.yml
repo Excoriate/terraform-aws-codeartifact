@@ -13,24 +13,24 @@ content: |-
 
   ## Overview
 
-  This Terraform module manages permissions policies for an existing AWS CodeArtifact Domain, allowing controlled access to domain resources.
+  This Terraform module manages the resource-based permissions policy for an **existing** AWS CodeArtifact Domain. It allows controlled access to domain resources through either a dynamically constructed policy or a complete policy override.
 
   ### 🔑 Key Features
-  - **Policy Management**: Applies `aws_codeartifact_domain_permissions_policy` to an existing domain.
-  - **Flexible Configuration**: Constructs policy dynamically from baseline principal lists (`read_principals`, `list_repo_principals`, `authorization_token_principals`) and custom statements (`custom_policy_statements`).
-  - **Policy Override**: Allows providing a complete JSON policy document (`policy_document_override`) which takes precedence over dynamic construction.
-  - **Cross-Account Support**: Handles domain ownership via `domain_owner`.
-  - **Controlled Access**: Enables fine-grained permissions management at the domain level.
-  - **Modular Design**: Separates domain policy management from domain creation.
+  - **Policy Management**: Applies or updates the `aws_codeartifact_domain_permissions_policy` for a specified domain.
+  - **Dynamic Policy Construction**: Builds a policy based on lists of principals for common actions (`read_principals`, `list_repo_principals`, `authorization_token_principals`) and merges custom IAM statements (`custom_policy_statements`). Includes a default statement granting the domain owner basic read access.
+  - **Policy Override**: Allows providing a complete JSON policy document via `policy_document_override`, which takes precedence over dynamic construction.
+  - **Conditional Creation**: Creates the policy resource only if the module is enabled AND either `policy_document_override` is provided OR at least one dynamic principal/statement list is non-empty.
+  - **Cross-Account Support**: Handles domains owned by different AWS accounts using `domain_owner`.
+  - **Modular Design**: Decouples policy management from domain creation.
 
   ### 📋 Usage Guidelines
-  1. Ensure the target CodeArtifact domain exists.
-  2. Provide the `domain_name`.
-  3. **Choose Policy Method:**
-     *   **Option A (Dynamic Construction):** Define principals for baseline access using `read_principals`, `list_repo_principals`, `authorization_token_principals` and/or provide specific IAM policy statement objects via `custom_policy_statements`. Leave `policy_document_override` as `null`.
-     *   **Option B (Full Override):** Provide a complete, valid JSON policy string to `policy_document_override`. The baseline and custom statement variables will be ignored.
-  4. If the domain is in another account, specify `domain_owner`.
-  5. Use `policy_revision` for optimistic locking if needed.
+  1. Ensure the target CodeArtifact domain (specified by `domain_name`) exists in the correct AWS account and region.
+  2. **Choose Policy Method:**
+     *   **Option A (Policy Override):** Provide a complete, valid JSON policy string to `var.policy_document_override`. All other policy-related inputs (`read_principals`, `list_repo_principals`, etc.) will be ignored by the module. This is useful for complex policies or externally managed policies.
+     *   **Option B (Dynamic Construction):** Leave `var.policy_document_override` as `null`. Provide principals and/or custom statements using `var.read_principals`, `var.list_repo_principals`, `var.authorization_token_principals`, and `var.custom_policy_statements`. The module will construct a policy including a default statement for the owner plus statements based on your inputs. **Note:** If all these dynamic inputs are empty/null, no policy resource will be created by default (unless `policy_document_override` is used).
+  3. If the domain is in another AWS account, specify its account ID in `var.domain_owner`.
+  4. Use `var.policy_revision` for optimistic locking if managing policy updates concurrently.
+  5. Set `var.is_enabled` to `false` to prevent the module from creating the policy resource.
 
   **Example (Dynamic Construction):**
   ```hcl
