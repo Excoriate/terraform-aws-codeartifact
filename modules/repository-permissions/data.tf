@@ -78,8 +78,8 @@ data "aws_iam_policy_document" "combined" {
     for_each = var.custom_policy_statements
     content {
       sid       = lookup(statement.value, "Sid", null)
-      effect    = lookup(statement.value, "Effect", null) # Required, validated in variables.tf
-      actions   = lookup(statement.value, "Action", null) # Required, validated in variables.tf
+      effect    = lookup(statement.value, "Effect", null)   # Required, validated in variables.tf
+      actions   = lookup(statement.value, "Action", null)   # Required, validated in variables.tf
       resources = lookup(statement.value, "Resource", null) # Required, validated in variables.tf
 
       dynamic "principals" {

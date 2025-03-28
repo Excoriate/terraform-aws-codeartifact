@@ -10,12 +10,12 @@ module "this" {
   # Required inputs
   domain_name     = var.domain_name     # Must be provided via tfvars
   repository_name = var.repository_name # Uses default or tfvars override
+  is_enabled      = var.is_enabled      # Controlled by fixtures
 
-  # Optional inputs controlled by example variables (and potentially tfvars)
-  is_enabled                 = var.is_enabled
-  description                = var.description
-  upstreams                  = var.upstreams
-  external_connections       = var.external_connections
-  repository_policy_document = var.repository_policy_document
-  tags                       = var.tags
+  # Only essential inputs for a basic example. Optional features rely on module defaults (null).
+  # description                = null # Explicitly null or rely on module default
+  # upstreams                  = null # Explicitly null or rely on module default
+  # external_connections       = null # Explicitly null or rely on module default
+  # repository_policy_document = null # Explicitly null or rely on module default
+  tags = var.tags # Tags are common, kept for basic example
 }

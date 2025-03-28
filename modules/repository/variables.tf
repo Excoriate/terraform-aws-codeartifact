@@ -63,16 +63,15 @@ variable "external_connections" {
   If `null`, no external connections will be configured.
   Refer to AWS CodeArtifact documentation for available external connection names.
   DESC
-  type    = optional(list(string), null)
-  default = null
+  type        = optional(list(string), null)
+  default     = null
 
   validation {
-    # Basic validation: ensure list elements are non-empty strings if list is not null.
-    # More specific validation (e.g., regex for "public:...") could be added if needed.
+    # Ensure list elements are non-empty strings matching known public connection patterns.
     condition = var.external_connections == null || alltrue([
-      for conn in var.external_connections : conn != null && conn != ""
+      for conn in var.external_connections : can(regex("^public:(npmjs|pypi|maven-central|maven-google-android|maven-gradle-plugin|maven-commonsware|nuget-org)$", conn))
     ])
-    error_message = "Each external connection name must be a non-empty string."
+    error_message = "Each external connection name must be a non-empty string matching a known public pattern (e.g., 'public:npmjs', 'public:pypi', etc.)."
   }
 }
 
@@ -82,14 +81,13 @@ variable "repository_policy_document" {
   This controls permissions for accessing the repository.
   If `null`, no repository policy will be created by this module.
   DESC
-  type    = optional(string, null)
-  default = null
+  type        = optional(string, null)
+  default     = null
+  sensitive   = true # Mark as sensitive to prevent exposure in logs/plan
 
   validation {
-    # Basic check if the string is likely JSON (starts with { and ends with })
-    # For more robust validation, consider using `jsondecode` in a local variable,
-    # but that can make planning fail if the input is invalid, which might be desired.
-    condition = var.repository_policy_document == null || (substr(trimspace(var.repository_policy_document), 0, 1) == "{" && substr(trimspace(var.repository_policy_document), -1, 1) == "}")
+    # Use can(jsondecode(...)) for robust JSON structure validation during planning.
+    condition     = var.repository_policy_document == null || can(jsondecode(var.repository_policy_document))
     error_message = "The repository_policy_document must be a valid JSON string or null."
   }
 }

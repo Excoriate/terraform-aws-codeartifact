@@ -25,37 +25,14 @@ variable "aws_region" {
 variable "tags" {
   description = "Tags to apply to the repository created by the module."
   type        = map(string)
-  default     = {
+  default = {
     Example     = "basic-repository"
     Environment = "development"
     ManagedBy   = "Terraform"
   }
 }
 
-// Add variables corresponding to optional module inputs if you want to control them via fixtures
-// Example:
-variable "upstreams" {
-  description = "Optional upstream configuration for the repository module."
-  type = optional(list(object({
-    repository_name = string
-  })), null)
-  default = null
-}
-
-variable "external_connections" {
-  description = "Optional external connections configuration for the repository module."
-  type    = optional(list(string), null)
-  default = null
-}
-
-variable "repository_policy_document" {
-  description = "Optional policy document for the repository module."
-  type    = optional(string, null)
-  default = null
-}
-
-variable "description" {
-  description = "Optional description for the repository module."
-  type        = string
-  default     = "Basic repository example created by Terraform"
-}
+// Optional module variables are intentionally omitted here for a basic example.
+// The module's internal defaults (null) will be used.
+// They can be defined here and controlled via fixtures if needed for more complex "basic" scenarios,
+// but are removed for maximum simplicity initially.

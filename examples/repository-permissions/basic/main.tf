@@ -15,7 +15,7 @@ module "this" {
 
   # Pass through variables controlled by the example/fixtures
   is_enabled                     = var.is_enabled
-  domain_name                    = var.domain_name # Must be provided via tfvars
+  domain_name                    = var.domain_name     # Must be provided via tfvars
   repository_name                = var.repository_name # Must be provided via tfvars
   domain_owner                   = var.domain_owner
   read_principals                = var.read_principals

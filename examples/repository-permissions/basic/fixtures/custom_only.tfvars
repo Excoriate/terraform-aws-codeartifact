@@ -25,8 +25,8 @@ custom_policy_statements = [
     Resource = "*"
   },
   {
-    Sid    = "DenyDeleteForEveryoneElse", # Example deny statement
-    Effect = "Deny",
+    Sid       = "DenyDeleteForEveryoneElse", # Example deny statement
+    Effect    = "Deny",
     Principal = "*",
     Action = [
       "codeartifact:DeleteRepository",
