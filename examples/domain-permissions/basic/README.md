@@ -8,4 +8,4 @@ just tf-docs-generate "domain-permissions/basic"
 ```
 
 <!-- BEGIN_TF_DOCS -->
-<!-- END_TF_DOCS --> 
+<!-- END_TF_DOCS -->
