@@ -5,10 +5,10 @@
 AWS_REGION ?= us-west-2
 
 .PHONY: help init \
-        plan-default plan-disabled plan-with-policy \
-        apply-default apply-disabled apply-with-policy \
-        destroy-default destroy-disabled destroy-with-policy \
-        cycle-default cycle-disabled cycle-with-policy \
+        plan-default plan-disabled plan-complete \
+        apply-default apply-disabled apply-complete \
+        destroy-default destroy-disabled destroy-complete \
+        cycle-default cycle-disabled cycle-complete \
         clean
 
 # Default target when just running 'make'
@@ -16,30 +16,30 @@ help:
 	@echo "Repository - Basic Example"
 	@echo ""
 	@echo "Usage: make <target> [AWS_REGION=your-region]"
-	@echo "Ensure 'domain_name' is set in the relevant fixtures/*.tfvars file before running apply/destroy/cycle targets."
+	@echo "Self-contained example that creates both domain and repository"
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make init                     - Initialize Terraform"
 	@echo ""
 	@echo "  Plan commands (terraform plan):"
-	@echo "  make plan-default             - Plan with default module settings (fixtures/default.tfvars)"
-	@echo "  make plan-disabled            - Plan with module entirely disabled (fixtures/disabled.tfvars)"
-	@echo "  make plan-with-policy         - Plan for a repository with a custom policy document (fixtures/with_policy.tfvars)"
+	@echo "  make plan-default             - Plan with default configuration (domain and repository)"
+	@echo "  make plan-disabled            - Plan with module entirely disabled (no resources created)"
+	@echo "  make plan-complete            - Plan with all features enabled (KMS, upstream repo, external connections, policy)"
 	@echo ""
 	@echo "  Apply commands (terraform apply -auto-approve):"
-	@echo "  make apply-default            - Apply default module settings"
+	@echo "  make apply-default            - Apply default configuration"
 	@echo "  make apply-disabled           - Apply with module disabled"
-	@echo "  make apply-with-policy        - Apply a repository with a custom policy"
+	@echo "  make apply-complete           - Apply complete configuration with all features"
 	@echo ""
 	@echo "  Destroy commands (terraform destroy -auto-approve):"
 	@echo "  make destroy-default          - Destroy default resources"
 	@echo "  make destroy-disabled         - Destroy (no-op) with module disabled"
-	@echo "  make destroy-with-policy      - Destroy the repository with a policy"
+	@echo "  make destroy-complete         - Destroy complete configuration"
 	@echo ""
 	@echo "  Complete cycle commands (plan, apply, and destroy):"
-	@echo "  make cycle-default            - Run full cycle with default settings"
+	@echo "  make cycle-default            - Run full cycle with default configuration"
 	@echo "  make cycle-disabled           - Run full cycle with module disabled"
-	@echo "  make cycle-with-policy        - Run full cycle for a repository with a policy"
+	@echo "  make cycle-complete           - Run full cycle with all features enabled"
 	@echo ""
 	@echo "  Utility commands:"
 	@echo "  make clean                    - Remove .terraform directory and other Terraform files"
@@ -59,9 +59,9 @@ plan-default: init
 plan-disabled: init
 	@echo "Planning with disabled fixture (module entirely disabled)..."
 	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
-plan-with-policy: init
-	@echo "Planning with with_policy fixture..."
-	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars
+plan-complete: init
+	@echo "Planning with complete fixture (all features enabled)..."
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/complete.tfvars
 
 # Apply commands
 apply-default: init
@@ -70,9 +70,9 @@ apply-default: init
 apply-disabled: init
 	@echo "Applying with disabled fixture (module entirely disabled)..."
 	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
-apply-with-policy: init
-	@echo "Applying with with_policy fixture..."
-	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
+apply-complete: init
+	@echo "Applying with complete fixture (all features enabled)..."
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/complete.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
@@ -81,17 +81,17 @@ destroy-default: init
 destroy-disabled: init
 	@echo "Destroying resources with disabled fixture (module entirely disabled)..."
 	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
-destroy-with-policy: init
-	@echo "Destroying resources with with_policy fixture..."
-	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/with_policy.tfvars -auto-approve
+destroy-complete: init
+	@echo "Destroying resources with complete fixture (all features enabled)..."
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/complete.tfvars -auto-approve
 
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default
 	@echo "Completed full cycle with default fixture"
 cycle-disabled: plan-disabled apply-disabled destroy-disabled
 	@echo "Completed full cycle with disabled fixture (module entirely disabled)"
-cycle-with-policy: plan-with-policy apply-with-policy destroy-with-policy
-	@echo "Completed full cycle with with_policy fixture"
+cycle-complete: plan-complete apply-complete destroy-complete
+	@echo "Completed full cycle with complete fixture (all features enabled)"
 
 # Clean up Terraform files
 clean:

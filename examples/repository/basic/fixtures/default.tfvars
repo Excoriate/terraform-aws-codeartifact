@@ -1,12 +1,20 @@
-# Default fixture - relies on module defaults where possible.
-# The domain_name MUST be set for this example to work.
-# Replace "your-actual-domain-name" with a valid CodeArtifact domain.
-domain_name = "domain-test-default"
+# Default fixture - uses standard configuration for self-contained example
+# This creates a basic CodeArtifact domain and repository with minimal configuration
 
-# is_enabled defaults to true in variables.tf
-# repository_name defaults to "my-basic-repository-example" in variables.tf
-# description defaults to "Basic repository example created by Terraform" in variables.tf
-# upstreams defaults to null in variables.tf
-# external_connections defaults to null in variables.tf
-# repository_policy_document defaults to null in variables.tf
-# tags defaults to example tags in variables.tf
+# Enable module
+is_enabled = true
+
+# Domain configuration
+domain_name = "example-basic-domain"
+
+# Repository configuration
+repository_name = "my-basic-repository-example"
+description = "Basic repository example with minimal configuration"
+
+# Optional features disabled by default
+create_kms_key = false
+create_upstream_repository = false
+enable_npm_external_connection = false
+create_policy = false
+
+# Tags are inherited from variables.tf defaults
