@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "oidc_assume_role" {
     effect  = "Allow"
 
     principals {
-      type        = "Federated"
+      type = "Federated"
       # Reference the OIDC provider ARN created in main.tf
       # Using try() to avoid errors during plan if the provider resource doesn't exist yet (count=0)
       identifiers = [try(aws_iam_openid_connect_provider.oidc[0].arn, "")]
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "oidc_assume_role" {
       for_each = var.oidc_role_condition_string_like
       content {
         test     = "StringLike"
-        variable = condition.key # The key from the map, e.g., "gitlab.com:sub"
+        variable = condition.key   # The key from the map, e.g., "gitlab.com:sub"
         values   = condition.value # The list of allowed patterns from the map value
       }
     }

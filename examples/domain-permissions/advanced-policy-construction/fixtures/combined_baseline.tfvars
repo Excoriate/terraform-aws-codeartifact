@@ -3,7 +3,7 @@
 # the BaselineReadDomainPolicy statement, and the BaselineListRepositories statement.
 domain_name_suffix = "dynamic-combo-base"
 
-read_principals = ["arn:aws:iam::111122223333:role/ReaderRole"] # Example ARN
+read_principals      = ["arn:aws:iam::111122223333:role/ReaderRole"]                                            # Example ARN
 list_repo_principals = ["arn:aws:iam::111122223333:role/ReaderRole", "arn:aws:iam::444455556666:user/dev-user"] # Example ARNs
 
 # Other dynamic inputs omitted

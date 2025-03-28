@@ -19,7 +19,7 @@ output "policy_document" {
 output "is_enabled" {
   description = "Indicates whether the domain permissions policy resource was enabled in the module."
   # This output now reflects the example's input flag, as the module itself might not exist
-  value       = var.is_enabled
+  value = var.is_enabled
 }
 
 output "domain_name" {

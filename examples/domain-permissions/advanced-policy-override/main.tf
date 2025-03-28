@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "override_policy" {
     sid    = "OverrideMainAllowOwnerListRepos"
     effect = "Allow"
     principals {
-      type        = "AWS"
+      type = "AWS"
       # Use the current account executing Terraform
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }

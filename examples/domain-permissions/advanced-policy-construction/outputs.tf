@@ -4,7 +4,7 @@
 output "policy_revision" {
   description = "The current revision of the domain permissions policy from the module."
   # Access module output conditionally based on the example's is_enabled flag
-  value       = var.is_enabled ? module.this[0].policy_revision : null
+  value = var.is_enabled ? module.this[0].policy_revision : null
 }
 
 output "resource_arn" {
@@ -20,7 +20,7 @@ output "policy_document" {
 output "is_enabled" {
   description = "Indicates whether the domain permissions policy resource was enabled in the module call."
   # This output reflects the example's input flag, as the module itself might not exist
-  value       = var.is_enabled
+  value = var.is_enabled
 }
 
 output "domain_name" {

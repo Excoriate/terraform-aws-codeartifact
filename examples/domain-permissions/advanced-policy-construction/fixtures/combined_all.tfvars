@@ -3,8 +3,8 @@
 # baseline statements for read/list/auth, and the custom statement.
 domain_name_suffix = "dynamic-combo-all"
 
-read_principals = ["arn:aws:iam::111122223333:role/ReaderRole"]
-list_repo_principals = ["arn:aws:iam::111122223333:role/DeveloperRole"]
+read_principals                = ["arn:aws:iam::111122223333:role/ReaderRole"]
+list_repo_principals           = ["arn:aws:iam::111122223333:role/DeveloperRole"]
 authorization_token_principals = ["arn:aws:iam::111122223333:role/CICDRole", "arn:aws:iam::444455556666:user/dev-user"]
 
 custom_policy_statements = [

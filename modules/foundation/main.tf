@@ -156,7 +156,7 @@ resource "aws_iam_role" "oidc" {
   description          = var.oidc_role_description
   assume_role_policy   = data.aws_iam_policy_document.oidc_assume_role[0].json
   max_session_duration = var.oidc_role_max_session_duration
-  tags                 = merge(
+  tags = merge(
     local.common_tags,
     { Name = var.oidc_role_name }
   )

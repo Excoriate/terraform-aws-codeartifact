@@ -87,7 +87,7 @@ variable "list_repo_principals" {
 
   validation {
     # Use ternary operator to avoid iteration when null
-    condition     = var.list_repo_principals == null ? true : alltrue([
+    condition = var.list_repo_principals == null ? true : alltrue([
       for principal in var.list_repo_principals :
       can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
     ])
@@ -107,7 +107,7 @@ variable "authorization_token_principals" {
 
   validation {
     # Use ternary operator to avoid iteration when null
-    condition     = var.authorization_token_principals == null ? true : alltrue([
+    condition = var.authorization_token_principals == null ? true : alltrue([
       for principal in var.authorization_token_principals :
       can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
     ])

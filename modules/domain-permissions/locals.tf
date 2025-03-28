@@ -11,10 +11,10 @@ locals {
   # --- Policy Construction Logic ---
 
   # Get lengths of lists safely with try/coalesce pattern
-  read_principals_length = try(length(var.read_principals), 0)
-  list_repo_principals_length = try(length(var.list_repo_principals), 0)
+  read_principals_length       = try(length(var.read_principals), 0)
+  list_repo_principals_length  = try(length(var.list_repo_principals), 0)
   auth_token_principals_length = try(length(var.authorization_token_principals), 0)
-  custom_statements_length = try(length(var.custom_policy_statements), 0)
+  custom_statements_length     = try(length(var.custom_policy_statements), 0)
 
   # Flag to determine if any baseline policy inputs are provided
   has_baseline_inputs = (
