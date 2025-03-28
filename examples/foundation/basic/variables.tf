@@ -97,3 +97,60 @@ variable "codeartifact_domain_name" {
   description = "The name of the CodeArtifact domain to create. This provides a consistent naming convention for resources."
   default     = "example-domain"
 }
+
+
+# --- OIDC Provider Variables (for pass-through) ---
+
+variable "is_oidc_provider_enabled" {
+  description = "Pass-through for module's is_oidc_provider_enabled."
+  type        = bool
+  default     = false # Default to disabled in the basic example
+}
+
+variable "oidc_provider_url" {
+  description = "Pass-through for module's oidc_provider_url."
+  type        = string
+  default     = null # Must be set in fixture if is_oidc_provider_enabled = true
+}
+
+variable "oidc_client_id_list" {
+  description = "Pass-through for module's oidc_client_id_list."
+  type        = list(string)
+  default     = ["sts.amazonaws.com"] # Default suitable for GitHub Actions fixture
+}
+
+variable "oidc_thumbprint_list" {
+  description = "Pass-through for module's oidc_thumbprint_list."
+  type        = list(string)
+  default     = []
+}
+
+variable "oidc_role_name" {
+  description = "Pass-through for module's oidc_role_name."
+  type        = string
+  default     = "foundation-example-oidc-role"
+}
+
+variable "oidc_role_description" {
+  description = "Pass-through for module's oidc_role_description."
+  type        = string
+  default     = "IAM role for OIDC federation (Foundation Example)"
+}
+
+variable "oidc_role_max_session_duration" {
+  description = "Pass-through for module's oidc_role_max_session_duration."
+  type        = number
+  default     = 3600
+}
+
+variable "oidc_role_condition_string_like" {
+  description = "Pass-through for module's oidc_role_condition_string_like."
+  type        = map(list(string))
+  default     = {} # Must be set in fixture if is_oidc_provider_enabled = true
+}
+
+variable "oidc_role_attach_policy_arns" {
+  description = "Pass-through for module's oidc_role_attach_policy_arns."
+  type        = list(string)
+  default     = []
+}

@@ -1,0 +1,67 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    - resources
+
+content: |-
+  # Terraform Module: AWS CodeArtifact Repository
+
+  ## Overview
+  > **Note:** This module provides resources for creating and managing an AWS CodeArtifact repository, including optional upstream configurations, external connections, and repository policies.
+
+  ### 🔑 Key Features
+  - Creates a CodeArtifact repository within a specified domain.
+  - Supports **hosted** repositories (no upstreams/connections) for internal package storage.
+  - Supports **proxy** repositories via internal `upstreams` to other domain repositories.
+  - Supports **proxy** repositories via public `external_connections` (e.g., to npmjs, PyPI).
+  - Supports **combined** proxy repositories (internal upstreams + external connections).
+  - Supports attaching an optional repository permissions policy (`repository_policy_document`).
+  - Conditional creation via `is_enabled` flag.
+  - Standardized tagging (`tags`).
+
+  ### 📋 Usage Guidelines
+  1. Ensure the specified CodeArtifact domain (`var.domain_name`) exists.
+  2. Provide a unique `var.repository_name`.
+  3. Optionally configure `var.upstreams` for proxy behavior.
+  4. Optionally configure `var.external_connections` to link to public repositories.
+  5. Optionally provide a JSON policy document via `var.repository_policy_document`.
+  6. Apply standard tags via `var.tags`.
+
+  {{ .Header }}
+
+  ## Variables
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

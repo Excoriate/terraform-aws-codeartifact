@@ -64,77 +64,77 @@ init:
 # Plan commands
 plan-default: init
 	@echo "Planning with default fixture..."
-	terraform plan -var-file=fixtures/default.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars
 
 plan-disabled: init
 	@echo "Planning with disabled fixture (module entirely disabled)..."
-	terraform plan -var-file=fixtures/disabled.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars
 
 plan-with-domain-permissions: init
 	@echo "Planning with domain permissions policy enabled..."
-	terraform plan -var-file=fixtures/with-domain-permissions.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/with-domain-permissions.tfvars
 
 plan-custom-domain-owner: init
 	@echo "Planning with custom domain owner..."
-	terraform plan -var-file=fixtures/custom-domain-owner.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom-domain-owner.tfvars
 
 plan-no-encryption: init
 	@echo "Planning with default AWS encryption (no custom KMS key)..."
-	terraform plan -var-file=fixtures/no-encryption.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/no-encryption.tfvars
 
 plan-combined-features: init
 	@echo "Planning with multiple features enabled..."
-	terraform plan -var-file=fixtures/combined-features.tfvars
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined-features.tfvars
 
 # Apply commands
 apply-default: init
 	@echo "Applying with default fixture..."
-	terraform apply -var-file=fixtures/default.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 
 apply-disabled: init
 	@echo "Applying with disabled fixture (module entirely disabled)..."
-	terraform apply -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 
 apply-with-domain-permissions: init
 	@echo "Applying with domain permissions policy enabled..."
-	terraform apply -var-file=fixtures/with-domain-permissions.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/with-domain-permissions.tfvars -auto-approve
 
 apply-custom-domain-owner: init
 	@echo "Applying with custom domain owner..."
-	terraform apply -var-file=fixtures/custom-domain-owner.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom-domain-owner.tfvars -auto-approve
 
 apply-no-encryption: init
 	@echo "Applying with default AWS encryption (no custom KMS key)..."
-	terraform apply -var-file=fixtures/no-encryption.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/no-encryption.tfvars -auto-approve
 
 apply-combined-features: init
 	@echo "Applying with multiple features enabled..."
-	terraform apply -var-file=fixtures/combined-features.tfvars -auto-approve
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined-features.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
 	@echo "Destroying resources with default fixture..."
-	terraform destroy -var-file=fixtures/default.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/default.tfvars -auto-approve
 
 destroy-disabled: init
 	@echo "Destroying resources with disabled fixture (module entirely disabled)..."
-	terraform destroy -var-file=fixtures/disabled.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/disabled.tfvars -auto-approve
 
 destroy-with-domain-permissions: init
 	@echo "Destroying resources with domain permissions policy enabled..."
-	terraform destroy -var-file=fixtures/with-domain-permissions.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/with-domain-permissions.tfvars -auto-approve
 
 destroy-custom-domain-owner: init
 	@echo "Destroying resources with custom domain owner..."
-	terraform destroy -var-file=fixtures/custom-domain-owner.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/custom-domain-owner.tfvars -auto-approve
 
 destroy-no-encryption: init
 	@echo "Destroying resources with default AWS encryption (no custom KMS key)..."
-	terraform destroy -var-file=fixtures/no-encryption.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/no-encryption.tfvars -auto-approve
 
 destroy-combined-features: init
 	@echo "Destroying resources with multiple features enabled..."
-	terraform destroy -var-file=fixtures/combined-features.tfvars -auto-approve
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/combined-features.tfvars -auto-approve
 
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default

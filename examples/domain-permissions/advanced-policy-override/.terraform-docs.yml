@@ -1,0 +1,63 @@
+---
+# Documentation configuration for the advanced-policy-override example.
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Resources section is less critical for examples, but can be kept
+    - resources
+
+content: |-
+  # Terraform Module Example: Domain Permissions - Advanced Policy Override
+
+  ## Overview
+  > **Note:** This example demonstrates using the `policy_document_override` input variable of the `domain-permissions` module.
+  > It creates a CodeArtifact domain and applies a completely custom policy defined in the `fixtures/default.tfvars` file, ignoring the module's dynamic policy generation features.
+
+  ### 🔑 Key Features Demonstrated
+  - **Policy Override**: Shows how to bypass dynamic policy generation and apply a specific JSON policy document.
+  - **Module Integration**: Calls the `domain-permissions` module.
+  - **Self-Contained**: Creates its own CodeArtifact domain for testing purposes.
+
+  ### 📋 Usage Guidelines
+  1. **Customize Fixture**: Edit `fixtures/default.tfvars`. Replace placeholder ARNs and domain names in the `policy_document_override` JSON string with values valid for your AWS environment.
+  2. **Initialize**: Run `make init` or `terraform init`.
+  3. **Plan**: Run `make plan-default` or `terraform plan -var-file=fixtures/default.tfvars`. Review the plan to ensure the override policy is being used.
+  4. **Apply**: Run `make apply-default` or `terraform apply -var-file=fixtures/default.tfvars`.
+
+  {{ .Header }}
+
+  ## Variables
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+output:
+  file: README.md
+  mode: inject # Creates README.md if it doesn't exist
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

@@ -21,3 +21,9 @@ variable "use_default_kms" {
   type        = bool
   default     = false
 }
+
+variable "aws_region" {
+  description = "AWS region for the provider."
+  type        = string
+  default     = "us-west-2"
+}
