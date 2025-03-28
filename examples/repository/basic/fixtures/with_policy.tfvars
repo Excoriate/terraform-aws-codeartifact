@@ -1,7 +1,7 @@
 # With Policy repository fixture - defines a repository_policy_document.
 # Replace "your-actual-domain-name" with a valid CodeArtifact domain.
 # Replace "111122223333" with a valid AWS Account ID.
-domain_name = "your-actual-domain-name"
+domain_name = "domain-test-with-policy"
 
 # Keep other optional connection variables null/default for this specific test
 upstreams            = null

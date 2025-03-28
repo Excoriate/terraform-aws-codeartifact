@@ -24,4 +24,5 @@ output "repository_domain_owner" {
 output "policy_revision" {
   description = "The revision of the repository permissions policy. Only set if a policy is created."
   value       = module.this.policy_revision
+  sensitive   = true
 }

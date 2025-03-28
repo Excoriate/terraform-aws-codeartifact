@@ -5,7 +5,7 @@ output "repository_arn" {
 
 output "repository_name" {
   description = "The name of the created CodeArtifact repository."
-  value       = local.create_repository ? aws_codeartifact_repository.this[0].name : null
+  value       = local.create_repository ? aws_codeartifact_repository.this[0].repository : null
 }
 
 output "repository_administrator_account" {

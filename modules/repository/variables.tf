@@ -42,13 +42,13 @@ variable "upstreams" {
   Example: `[{ repository_name = "upstream-repo-1" }, { repository_name = "upstream-repo-2" }]`
   If `null`, no upstream repositories will be configured.
   DESC
-  type = optional(list(object({
+  type = list(object({
     repository_name = string
-  })), null)
+  }))
   default = null
 
   validation {
-    condition = var.upstreams == null || alltrue([
+    condition = var.upstreams == null ? true : alltrue([
       for upstream in var.upstreams : upstream.repository_name != null && upstream.repository_name != ""
     ])
     error_message = "Each upstream object must have a non-empty 'repository_name'."
@@ -63,12 +63,12 @@ variable "external_connections" {
   If `null`, no external connections will be configured.
   Refer to AWS CodeArtifact documentation for available external connection names.
   DESC
-  type        = optional(list(string), null)
+  type        = list(string)
   default     = null
 
   validation {
     # Ensure list elements are non-empty strings matching known public connection patterns.
-    condition = var.external_connections == null || alltrue([
+    condition = var.external_connections == null ? true : alltrue([
       for conn in var.external_connections : can(regex("^public:(npmjs|pypi|maven-central|maven-google-android|maven-gradle-plugin|maven-commonsware|nuget-org)$", conn))
     ])
     error_message = "Each external connection name must be a non-empty string matching a known public pattern (e.g., 'public:npmjs', 'public:pypi', etc.)."
@@ -81,7 +81,7 @@ variable "repository_policy_document" {
   This controls permissions for accessing the repository.
   If `null`, no repository policy will be created by this module.
   DESC
-  type        = optional(string, null)
+  type        = string
   default     = null
   sensitive   = true # Mark as sensitive to prevent exposure in logs/plan
 
