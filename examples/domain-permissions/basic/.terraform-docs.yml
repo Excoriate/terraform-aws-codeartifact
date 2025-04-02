@@ -1,0 +1,77 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Show modules called by this example (which is just the domain-permissions module)
+    - modules
+    # Do not show resources directly created by the example itself (usually none)
+    # - resources
+
+content: |-
+  # Basic Example: AWS CodeArtifact Domain Permissions Module
+
+  ## Overview
+  > **Note:** This example demonstrates the basic usage of the refactored `domain-permissions` module found in `modules/domain-permissions`. It applies a policy to an **existing** CodeArtifact domain, constructing the policy from baseline principal lists and/or custom statements.
+
+  ### 🔑 Key Features Demonstrated
+  - Calling the `domain-permissions` module with required inputs (`domain_name`).
+  - Using fixtures (`fixtures/*.tfvars`) to test different policy configurations:
+    - Applying baseline permissions (`read_principals`, `list_repo_principals`, `authorization_token_principals`).
+    - Applying only custom policy statements (`custom_policy_statements`).
+    - Combining baseline permissions and custom statements.
+    - Handling cross-account scenarios (`domain_owner` and custom statements).
+    - Overriding the generated policy with a full JSON document (`policy_document_override`).
+
+  ### 📋 Usage Guidelines
+  1.  **Prerequisites:** Ensure you have an existing CodeArtifact Domain in the target AWS region.
+  2.  **Configure:** Create a `.tfvars` file (or use one from `fixtures/`) specifying the `domain_name`. Define principals/custom statements OR provide a `policy_document_override` as needed for the scenario.
+      ```tfvars
+      # example.tfvars
+      domain_name = "your-existing-codeartifact-domain"
+      region      = "us-east-1" # Optional override
+
+      # Example: Grant list repo access to a role
+      # list_repo_principals = ["arn:aws:iam::111122223333:role/DeveloperRole"]
+      ```
+  3.  **Initialize:** Run `terraform init`.
+  4.  **Plan:** Run `terraform plan -var-file=example.tfvars`. Review the generated policy document in the plan output.
+  5.  **Apply:** Run `terraform apply -var-file=example.tfvars`.
+  6.  **Makefile:** Alternatively, use the provided `Makefile` targets (e.g., `make plan-read-only`, `make apply-cross-account`). Remember to set `domain_name` in the corresponding fixture file first.
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject # Use inject to add docs to README.md
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

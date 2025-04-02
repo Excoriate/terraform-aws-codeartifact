@@ -158,4 +158,24 @@ locals {
 
   # Feature flags for bucket policy
   is_bucket_policy_enabled = var.is_enabled && (var.s3_bucket_policy_override != null || length(var.additional_bucket_policies) > 0)
+
+  ###################################
+  # OIDC Locals 🔑
+  # ----------------------------------------------------
+  #
+  # Locals related to OIDC provider configuration
+  #
+  ###################################
+  is_oidc_provider_enabled = local.is_enabled && var.is_oidc_provider_enabled
+
+  # Determine the final thumbprint list: use provided list if not empty, otherwise attempt to use the fetched one.
+  # Defaults to empty list if OIDC is disabled or fetching fails/is not attempted.
+  oidc_thumbprint_list_final = local.is_oidc_provider_enabled ? (
+    length(var.oidc_thumbprint_list) > 0 ? var.oidc_thumbprint_list : try(
+      # Access data source only if its count is > 0
+      [data.tls_certificate.oidc[0].certificates[0].sha1_fingerprint],
+      # Default to empty list if data source wasn't run or failed
+      []
+    )
+  ) : []
 }

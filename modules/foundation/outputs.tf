@@ -105,3 +105,27 @@ output "s3_bucket_regional_domain_name" {
   description = "The regional domain name of the S3 bucket"
   value       = try(aws_s3_bucket.this[0].bucket_regional_domain_name, null)
 }
+
+
+###################################
+# OIDC Outputs 🔑
+# ----------------------------------------------------
+#
+# Outputs for the IAM OIDC Provider and Role
+#
+###################################
+
+output "oidc_provider_arn" {
+  description = "The ARN of the created IAM OIDC Provider."
+  value       = try(aws_iam_openid_connect_provider.oidc[0].arn, null)
+}
+
+output "oidc_role_arn" {
+  description = "The ARN of the created IAM Role for OIDC Federation."
+  value       = try(aws_iam_role.oidc[0].arn, null)
+}
+
+output "oidc_role_name" {
+  description = "The name of the created IAM Role for OIDC Federation."
+  value       = try(aws_iam_role.oidc[0].name, null)
+}

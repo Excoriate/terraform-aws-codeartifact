@@ -1,27 +1,83 @@
 ---
-formatter: markdown
+formatter: markdown table
 
 sections:
+  hide: []
   show:
-    - header
     - inputs
     - outputs
-    - providers
-    - requirements
+    # Show modules called by this example (which is just the foundation module)
+    - modules
+    # Do not show resources directly created by the example itself (usually none)
+    # - resources
 
-sort:
-  enabled: true
-  by: required
+content: |-
+  # Basic Example: AWS CodeArtifact Foundation Module
+
+  ## Overview
+  > **Note:** This example demonstrates the basic usage of the `foundation` module found in `modules/foundation`. It creates core resources like KMS keys, S3 buckets, and CloudWatch Log Groups, and optionally an IAM OIDC provider/role.
+
+  ### 🔑 Key Features Demonstrated
+  - Calling the `foundation` module with required inputs.
+  - Enabling/disabling specific components (KMS, S3, Logs, OIDC) via feature flags.
+  - Using fixtures (`fixtures/*.tfvars`) with `terraform plan/apply -var-file=...` to test different configurations.
+  - Demonstrating OIDC provider setup for GitLab and GitHub Actions.
+
+  ### 📋 Usage Guidelines
+  1.  **Configure:** Create a `.tfvars` file (or use one from `fixtures/`) specifying necessary inputs like `kms_key_alias`, `log_group_name`, `s3_bucket_name`, etc. For OIDC fixtures, customize provider URL, conditions, and policy ARNs.
+      ```tfvars
+      # example.tfvars
+      aws_region               = "us-east-1" # Optional override
+      kms_key_alias            = "alias/my-foundation-key"
+      log_group_name           = "/aws/codeartifact/my-foundation-logs"
+      s3_bucket_name           = "my-foundation-example-bucket-unique-name"
+      codeartifact_domain_name = "my-foundation-domain" # Used for resource naming consistency
+
+      # To enable OIDC for GitHub:
+      # is_oidc_provider_enabled = true
+      # oidc_provider_url        = "https://token.actions.githubusercontent.com"
+      # oidc_client_id_list      = ["sts.amazonaws.com"]
+      # oidc_role_name           = "github-actions-role"
+      # oidc_role_condition_string_like = {
+      #   "token.actions.githubusercontent.com:sub" = ["repo:your-org/your-repo:ref:refs/heads/main"]
+      # }
+      # oidc_role_attach_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"] # Example only, use least privilege!
+      ```
+  2.  **Initialize:** Run `terraform init`.
+  3.  **Plan:** Run `terraform plan -var-file=example.tfvars`.
+  4.  **Apply:** Run `terraform apply -var-file=example.tfvars`.
+  5.  **Makefile:** Alternatively, use the provided `Makefile` targets (e.g., `make plan-default`, `make apply-oidc-github`).
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
 
 settings:
   anchor: true
   color: true
-  default: true
   description: true
   escape: true
+  header: true
   html: true
   indent: 2
-  lockfile: true
   required: true
   sensitive: true
   type: true

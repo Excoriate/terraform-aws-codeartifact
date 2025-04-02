@@ -17,7 +17,7 @@ graph TD
     subgraph "Domain Layer [MVP]"
         D[terraform-aws-codeartifact-domain]
         Domain[Domain Module]
-        DomainPolicy[Domain Policy Module]
+        DomainPolicy[Domain Permissions Module] // Renamed for clarity
         D --> Domain
         D --> DomainPolicy
     end
@@ -27,9 +27,11 @@ graph TD
         HostedRepo[Hosted Repos Module]
         ProxyRepo[Proxy Repos Module]
         GroupRepo[Group Repos Module]
-        R --> HostedRepo
-        R --> ProxyRepo
-        R --> GroupRepo
+        RepoCreate[Repository Creation Module(s)] // Abstracting the creation part
+        R --> RepoCreate
+        // R --> HostedRepo (Implied within RepoCreate)
+        // R --> ProxyRepo (Implied within RepoCreate)
+        // R --> GroupRepo (Implied within RepoCreate)
     end
 
     subgraph "External Connections Layer [MVP]"
@@ -43,11 +45,11 @@ graph TD
     subgraph "Security Layer [MVP Core]"
         S[terraform-aws-codeartifact-security]
         IAM_Roles[IAM Roles Module]
-        ResPolicy[Resource Policy Module]
+        RepoPolicy[Repository Permissions Module] // Added specific module
         TokenGen[Token Generator Module]
         CrossAcc[Cross Account Module]
         S --> IAM_Roles
-        S --> ResPolicy
+        S --> RepoPolicy // Added link
         S --> TokenGen
         S --> CrossAcc
     end
@@ -82,8 +84,8 @@ graph TD
     R --> |"Outputs: repository_names, repository_endpoints"| E
 
     %% Domain & Repositories to Security Layer
-    D --> |"Outputs: domain_arn"| S
-    R --> |"Outputs: repository_arns"| S
+    D --> |"Outputs: domain_arn, domain_name"| S // Domain name might be needed for policy
+    R --> |"Outputs: repository_arns, repository_names"| S // Repo names/arns needed for policy
 
     %% Security to CI/CD Layer
     S --> |"Outputs: role_arns, token_generator_lambda"| C
@@ -122,7 +124,7 @@ graph TD
 | **Required Inputs** | • `domain_name`: CodeArtifact domain name<br>• `kms_key_arn`: KMS key ARN from foundation<br>• `tags`: Resource tags |
 | **Optional Inputs** | • `domain_owner`: AWS account ID of domain owner<br>• `encryption_mode`: Type of encryption (default: KMS) |
 | **Outputs** | • `domain_arn`: Domain ARN<br>• `domain_name`: Domain name<br>• `domain_owner`: Domain owner account ID<br>• `domain_endpoint`: Domain endpoint |
-| **Main Resources** | • AWS CodeArtifact domain<br>• Domain encryption settings<br>• Domain-level permissions policy |
+| **Main Resources** | • AWS CodeArtifact domain<br>• Domain encryption settings |
 | **Dependencies** | • Foundation module (KMS key) |
 
 ### Repositories Module (`terraform-aws-codeartifact-repositories`)
@@ -131,8 +133,8 @@ graph TD
 |-----------|---------|
 | **Required Inputs** | • `domain_name`: Domain name from domain module<br>• `repository_configs`: Map of repository configurations<br>• `tags`: Resource tags |
 | **Optional Inputs** | • `default_upstreams`: Default upstream repos<br>• `repository_retention`: Retention period settings |
-| **Outputs** | • `repository_arns`: Map of repository ARNs<br>• `repository_endpoints`: Map of repository endpoints<br>• `repository_names`: List of repository names |
-| **Main Resources** | • Hosted repositories<br>• Proxy repositories<br>• Group repositories<br>• Repository policies |
+| **Outputs** | • `repository_arns`: Map of repository ARNs<br>• `repository_endpoints`: Map of repository endpoints<br>• `repository_names`: List or Map of repository names |
+| **Main Resources** | • Hosted repositories<br>• Proxy repositories<br>• Group repositories |
 | **Dependencies** | • Domain module (domain name and ARN) |
 
 ### External Connections Module (`terraform-aws-codeartifact-connections`)
@@ -152,8 +154,18 @@ graph TD
 | **Required Inputs** | • `domain_arn`: Domain ARN from domain module<br>• `repository_arns`: Repository ARNs from repo module<br>• `permission_sets`: IAM permission configurations |
 | **Optional Inputs** | • `token_ttl`: Authentication token TTL<br>• `cross_account_access`: Cross-account access settings |
 | **Outputs** | • `role_arns`: Map of created IAM role ARNs<br>• `policy_arns`: Map of created policy ARNs<br>• `token_generator_lambda`: Token generator Lambda ARN |
-| **Main Resources** | • IAM roles and policies<br>• Resource-based policies<br>• Token generation Lambda<br>• Cross-account access roles |
-| **Dependencies** | • Domain module (domain ARN)<br>• Repositories module (repository ARNs) |
+| **Main Resources** | • IAM roles and policies<br>• Repository permissions policies (via dedicated module)<br>• Token generation Lambda<br>• Cross-account access roles |
+| **Dependencies** | • Domain module (domain ARN, domain name)<br>• Repositories module (repository ARNs, repository names) |
+
+### Repository Permissions Module (`terraform-aws-codeartifact-repository-permissions`)
+
+| Component | Details |
+|-----------|---------|
+| **Required Inputs** | • `domain_name`: Domain name from domain module<br>• `repository_name`: Name of the target repository (or map/list)<br>• `policy_document`: JSON policy document string (or map/list) |
+| **Optional Inputs** | • `domain_owner`: AWS account ID of domain owner<br>• `tags`: Resource tags |
+| **Outputs** | • `policy_revision`: Revision ID of the applied policy (or map/list) |
+| **Main Resources** | • `aws_codeartifact_repository_permissions_policy` |
+| **Dependencies** | • Domain module (domain name, owner)<br>• Repositories module (repository name/ARN) |
 
 ### CI/CD Integration Module (`terraform-aws-codeartifact-cicd`)
 
