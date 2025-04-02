@@ -13,7 +13,7 @@ A comprehensive suite of Terraform modules for deploying and managing AWS CodeAr
 
 ### Features
 
-This module provides:
+This is a collection of modules that provides:
 
 - 🚀 Complete AWS CodeArtifact infrastructure as code
 - 🔒 Secure, encrypted package management with KMS integration
