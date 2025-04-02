@@ -4,23 +4,34 @@
 [![🧼 Pre-commit Hooks](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/pre-commit.yml) [![📚 Terraform Modules CI](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/tf-modules-ci.yaml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/tf-modules-ci.yaml) [![🦫 Go Code Quality Checks](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/go-linter.yaml/badge.svg)](https://github.com/Excoriate/terraform-aws-codeartifact/actions/workflows/go-linter.yaml)
 ---
 
-## Terraform Registry Module Template
+## Terraform AWS CodeArtifact Module
 
-Add the description of your module here.
+A comprehensive suite of Terraform modules for deploying and managing AWS CodeArtifact resources, providing a complete package management solution for your organization.
 
 > [!TIP]
-> It is essential to provide a clear and comprehensive description of your module. A well-written description helps users understand the purpose and functionality of your module. For more information on how to write effective module descriptions, please refer to the [Terraform Registry documentation](https://registry.terraform.io/).
+> AWS CodeArtifact is a fully managed artifact repository service that makes it easy for organizations to securely store, publish, and share software packages used in their software development process.
 
 ### Features
 
 This module provides:
 
-> [!TIP]
-> When describing the features of your module, focus on clarity and brevity. Highlight the key functionalities and benefits without unnecessary jargon. This helps users quickly grasp what your module offers and how it can be beneficial for their projects.
+- 🚀 Complete AWS CodeArtifact infrastructure as code
+- 🔒 Secure, encrypted package management with KMS integration
+- 🏗️ Modular architecture allowing selective component deployment
+- 📦 Support for multiple package formats (npm, Maven, PyPI, etc.)
+- 🔄 Repository chaining with upstream repositories and external connections
+- 🔐 Fine-grained access control with IAM policies
 
-- 🚀 Add feature here
-- 🚀 Add feature here
-- 🚀 Add feature here
+## Available Modules
+
+| Module Name | Description | Examples | Documentation |
+|-------------|-------------|----------|---------------|
+| [domain](./modules/domain) | Creates and manages AWS CodeArtifact domains, the fundamental organizational container for repositories | [Basic](./examples/domain/basic) | [AWS CodeArtifact Domain](./docs/terraform-resources/aws_codeartifact_domain%20%20Resources%20%20hashicorpaws%20%20Terraform%20%20Terraform%20Registry.md) |
+| [domain-permissions](./modules/domain-permissions) | Manages permissions policies for AWS CodeArtifact domains | [Basic](./examples/domain-permissions) | [AWS CodeArtifact Domain Permissions Policy](./docs/terraform-resources/aws_codeartifact_domain_permissions_policy%20%20Resources%20%20hashicorpaws%20%20Terraform%20%20Terraform%20Registry.md) |
+| [repository](./modules/repository) | Creates and manages AWS CodeArtifact repositories with support for upstream repositories and external connections | [Basic](./examples/repository) | [AWS CodeArtifact Repository](./docs/terraform-resources/aws_codeartifact_repository%20%20Resources%20%20hashicorpaws%20%20Terraform%20%20Terraform%20Registry.md) |
+| [repository-permissions](./modules/repository-permissions) | Manages permissions policies for AWS CodeArtifact repositories | [Basic](./examples/repository-permissions) | [AWS CodeArtifact Repository Permissions Policy](./docs/terraform-resources/aws_codeartifact_repository_permissions_policy%20%20Resources%20%20hashicorpaws%20%20Terraform%20%20Terraform%20Registry.md) |
+| [foundation](./modules/foundation) | Provisions foundational resources required for AWS CodeArtifact operations (KMS keys, CloudWatch logs, S3 buckets) | [Basic](./examples/foundation) | [Foundation Resources](./docs/terraform-resources/terraform-aws-codeartifact-foundation-resources.md) |
+| [default](./modules/default) | Combines all modules to create a complete AWS CodeArtifact setup | [Basic](./examples/default) | All of the above |
 
 ### Usage
 
