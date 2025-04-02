@@ -9,12 +9,12 @@ domain_name = "example-basic-domain"
 
 # Repository configuration
 repository_name = "my-basic-repository-example"
-description = "Basic repository example with minimal configuration"
+description     = "Basic repository example with minimal configuration"
 
 # Optional features disabled by default
-create_kms_key = false
-create_upstream_repository = false
+create_kms_key                 = false
+create_upstream_repository     = false
 enable_npm_external_connection = false
-create_policy = false
+create_policy                  = false
 
 # Tags are inherited from variables.tf defaults

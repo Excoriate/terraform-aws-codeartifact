@@ -1,0 +1,66 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Show modules called by this example (which is just the repository module)
+    - modules
+    # Do not show resources directly created by the example itself (usually just the domain)
+    # - resources
+
+content: |-
+  # Example: AWS CodeArtifact Repository with Custom Policy
+
+  ## Overview
+  > **Note:** This example demonstrates attaching a custom repository permissions policy using the `repository` module found in `modules/repository`.
+
+  ### 🔑 Key Features Demonstrated
+  - Creating a CodeArtifact domain and repository within the example for isolation.
+  - Constructing an IAM policy document using `data "aws_iam_policy_document"`.
+  - Calling the `repository` module and passing the policy document via the `repository_policy_document` input variable.
+  - Using fixtures (`fixtures/*.tfvars`) and the `Makefile` to test the policy application (`default`) vs. disabling the module (`disabled`).
+
+  ### 📋 Usage Guidelines
+  1. **(Optional) Customize Principal**: Edit `variables.tf` or `fixtures/default.tfvars` to set `policy_principal_arn` if you don't want the policy applied to the current Terraform caller identity.
+  2. **Initialize**: Run `make init` or `terraform init`.
+  3. **Plan**: Run `make plan-default` or `terraform plan -var-file=fixtures/default.tfvars`. Review the plan to ensure the policy is included.
+  4. **Apply**: Run `make apply-default` or `terraform apply -var-file=fixtures/default.tfvars`.
+  5. **Verify**: Check the repository policy in the AWS console or via AWS CLI.
+  6. **Cleanup**: Run `make destroy-default`.
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
