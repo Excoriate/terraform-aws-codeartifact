@@ -55,23 +55,21 @@ variable "upstreams" {
   }
 }
 
-variable "external_connections" {
+variable "external_connection" {
   description = <<-DESC
-  An optional list of external connections for the repository.
+  An optional external connection for the repository.
   Valid values are strings representing predefined external connection names (e.g., "public:npmjs", "public:pypi", "public:maven-central").
-  This allows the repository to fetch packages from public repositories.
-  If `null`, no external connections will be configured.
+  This allows the repository to fetch packages from public repositories. Only one connection is allowed per repository.
+  If `null`, no external connection will be configured.
   Refer to AWS CodeArtifact documentation for available external connection names.
   DESC
-  type        = list(string)
+  type        = string
   default     = null
 
   validation {
-    # Ensure list elements are non-empty strings matching known public connection patterns.
-    condition = var.external_connections == null ? true : alltrue([
-      for conn in var.external_connections : can(regex("^public:(npmjs|pypi|maven-central|maven-google-android|maven-gradle-plugin|maven-commonsware|nuget-org)$", conn))
-    ])
-    error_message = "Each external connection name must be a non-empty string matching a known public pattern (e.g., 'public:npmjs', 'public:pypi', etc.)."
+    # Ensure the string is non-empty and matches known public connection patterns if not null.
+    condition     = var.external_connection == null ? true : can(regex("^public:(npmjs|pypi|maven-central|maven-google-android|maven-gradle-plugin|maven-commonsware|nuget-org)$", var.external_connection))
+    error_message = "The external connection name must be a non-empty string matching a known public pattern (e.g., 'public:npmjs', 'public:pypi', etc.) or null."
   }
 }
 

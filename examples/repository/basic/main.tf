@@ -36,7 +36,7 @@ module "this" {
   description = var.description
 
   # Optional external connections (can be enabled via fixtures)
-  external_connections = var.enable_npm_external_connection ? ["public:npmjs"] : null
+  external_connection = var.enable_npm_external_connection ? "public:npmjs" : null
 
   # Optional policy document (null in basic example)
   repository_policy_document = var.create_policy ? data.aws_iam_policy_document.repository_policy[0].json : null

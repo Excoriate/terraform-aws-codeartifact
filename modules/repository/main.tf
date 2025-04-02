@@ -6,6 +6,13 @@ resource "aws_codeartifact_repository" "this" {
   description = var.description # Will be null if var.description is null
   tags        = local.tags
 
+  lifecycle {
+    precondition {
+      condition     = var.upstreams == null || var.external_connection == null
+      error_message = "A CodeArtifact repository cannot have both 'upstreams' and 'external_connection' configured simultaneously. Please provide only one or neither."
+    }
+  }
+
   dynamic "upstream" {
     # Iterate over the upstreams list only if it's not null and not empty.
     # Using var.upstreams directly handles both null and empty list cases correctly in TF 1.0+.
@@ -16,11 +23,11 @@ resource "aws_codeartifact_repository" "this" {
   }
 
   dynamic "external_connections" {
-    # Iterate over the external_connections list only if it's not null and not empty.
-    # Convert to set for dynamic block compatibility if needed, though list should work.
-    for_each = var.external_connections == null ? [] : var.external_connections
+    # Iterate over a list containing zero or one element, based on the string variable.
+    for_each = var.external_connection == null ? [] : [var.external_connection]
     content {
-      external_connection_name = external_connections.value
+      # external_connections.value is now just each.value (the connection string itself)
+      external_connection_name = var.external_connection
     }
   }
 }

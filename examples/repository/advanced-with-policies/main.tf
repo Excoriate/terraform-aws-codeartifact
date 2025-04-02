@@ -70,8 +70,8 @@ module "this" {
   repository_policy_document = var.is_enabled && var.create_policy ? data.aws_iam_policy_document.repository_policy[0].json : null
 
   # Keep other optional features disabled for this policy-focused example
-  upstreams            = null
-  external_connections = null # Controlled by var.enable_npm_external_connection which defaults to false
+  upstreams           = null
+  external_connection = null # Controlled by var.enable_npm_external_connection which defaults to false
 
   # Tags
   tags = var.tags

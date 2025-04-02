@@ -54,7 +54,7 @@ rule "terraform_typed_variables" {
 
 rule "terraform_unused_declarations" {
   # Often disabled in examples as not all variables/outputs might be used directly
-  # depending on the specific scenario being demonstrated via fixtures.
+  # depending on the specific scenario being demonstrated.
   enabled = false
 }
 

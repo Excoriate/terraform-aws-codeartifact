@@ -1,6 +1,6 @@
-# This main.tf file demonstrates creating two repositories using the repository module:
+# This main.tf file demonstrates creating a complete repository setup using the repository module:
 # 1. An upstream repository.
-# 2. A downstream repository that uses the first as an upstream and has a policy attached.
+# 2. A downstream repository that uses the first as an upstream, has external connections, and has a policy attached.
 # It creates a self-contained example including the domain.
 
 data "aws_caller_identity" "current" {}
@@ -21,13 +21,14 @@ module "repo_upstream" {
   is_enabled      = var.is_enabled # Pass the main toggle
   domain_name     = aws_codeartifact_domain.this[0].domain
   repository_name = var.upstream_repo_name
-  description     = "Upstream repository for the example"
+  description     = "Upstream repository for the complete example"
   tags            = var.tags
 
-  # No upstreams or external connections for this one
-  upstreams                  = null
-  external_connection        = null
-  repository_policy_document = null # No policy on the upstream repo in this example
+  # Basic hosted repo configuration
+  # external_connection defaults to null in the module, so no need to set it here.
+  repository_policy_document = null
+
+  external_connection = var.external_connection
 
   depends_on = [aws_codeartifact_domain.this]
 }
@@ -37,7 +38,7 @@ data "aws_iam_policy_document" "repository_policy" {
   count = var.is_enabled ? 1 : 0
 
   statement {
-    sid    = "AllowPrincipalReadDownstream"
+    sid    = "AllowPrincipalReadDownstreamComplete"
     effect = "Allow"
     principals {
       type = "AWS"
@@ -60,7 +61,7 @@ data "aws_iam_policy_document" "repository_policy" {
   }
 
   statement {
-    sid    = "AllowStsGetCallerIdentityDownstream" # Required for CodeArtifact login
+    sid    = "AllowStsGetCallerIdentityDownstreamComplete" # Required for CodeArtifact login
     effect = "Allow"
     principals {
       type = "AWS"
@@ -72,7 +73,7 @@ data "aws_iam_policy_document" "repository_policy" {
   }
 }
 
-# Create the Downstream Repository using the module
+# Create the Downstream Repository using the module (with upstream, connections, and policy)
 module "repo_downstream" {
   source = "../../../modules/repository"
   count  = var.is_enabled ? 1 : 0
@@ -80,7 +81,7 @@ module "repo_downstream" {
   is_enabled      = var.is_enabled # Pass the main toggle
   domain_name     = aws_codeartifact_domain.this[0].domain
   repository_name = var.downstream_repo_name
-  description     = "Downstream repository with upstream and policy"
+  description     = "Downstream repository with upstream, connections, and policy"
   tags            = var.tags
 
   # Configure the upstream repository
@@ -90,11 +91,11 @@ module "repo_downstream" {
     }
   ]
 
+  # Configure the single external connection
+  # external_connection = var.external_connection
+
   # Attach the policy document
   repository_policy_document = data.aws_iam_policy_document.repository_policy[0].json
-
-  # No external connections for this one
-  external_connection = null
 
   # Explicitly depend on the upstream repository module instance
   depends_on = [

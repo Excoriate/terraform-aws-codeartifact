@@ -62,5 +62,8 @@ flake.lock.old
 # Specific ignore pattern for .terraform.lock.hcl files in tests directory
 **/tests/modules/**/**.terraform.lock.hcl
 
+# Ignore all .terraform.lock.hcl files within the modules/ directory at any level
+modules/**/.terraform.lock.hcl
+
 # New line to ignore files that start with "repomix" and end with ".md"
 repomix*.md
