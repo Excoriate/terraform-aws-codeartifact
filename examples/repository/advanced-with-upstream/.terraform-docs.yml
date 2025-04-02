@@ -1,0 +1,66 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Show modules called by this example
+    - modules
+    # Do not show resources directly created by the example itself (usually just the domain)
+    # - resources
+
+content: |-
+  # Example: AWS CodeArtifact Repository with Upstream and Policy
+
+  ## Overview
+  > **Note:** This example demonstrates creating an upstream repository and a downstream repository (with a policy) using the `repository` module found in `modules/repository`.
+
+  ### 🔑 Key Features Demonstrated
+  - Creating a CodeArtifact domain within the example.
+  - Calling the `repository` module twice: once for an upstream repo, once for a downstream repo.
+  - Configuring the `upstreams` input for the downstream repository module call.
+  - Attaching a custom policy to the downstream repository using `repository_policy_document`.
+  - Using fixtures (`fixtures/*.tfvars`) and the `Makefile` to test the full setup (`default`) vs. disabling the module (`disabled`).
+
+  ### 📋 Usage Guidelines
+  1. **Initialize**: Run `make init` or `terraform init`.
+  2. **Plan**: Run `make plan-default` or `terraform plan -var-file=fixtures/default.tfvars`. Review the plan.
+  3. **Apply**: Run `make apply-default` or `terraform apply -var-file=fixtures/default.tfvars`.
+  4. **Verify**: Check the repositories, upstream configuration, and policy in the AWS console or via AWS CLI.
+  5. **Cleanup**: Run `make destroy-default`.
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
