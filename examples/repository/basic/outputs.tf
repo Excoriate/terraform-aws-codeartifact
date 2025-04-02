@@ -49,21 +49,14 @@ output "repository_domain_owner" {
   value       = module.this.repository_domain_owner
 }
 
-# Upstream repository output
-output "upstream_repository_arn" {
-  description = "The ARN of the created upstream repository (if created)."
-  value       = var.is_enabled && var.create_upstream_repository ? aws_codeartifact_repository.upstream[0].arn : null
-}
-
-# Repository endpoint output
-output "npm_repository_endpoint" {
-  description = "The endpoint URL for the npm package format (if enabled)."
-  value       = var.is_enabled && var.enable_npm_external_connection ? data.aws_codeartifact_repository_endpoint.npm[0].repository_endpoint : null
-}
-
 # Policy outputs
 output "policy_revision" {
   description = "The revision of the repository permissions policy. Only set if a policy is created."
   value       = module.this.policy_revision
   sensitive   = true
+}
+
+output "is_enabled" {
+  description = "Whether the repository is enabled."
+  value       = module.this.is_enabled
 }

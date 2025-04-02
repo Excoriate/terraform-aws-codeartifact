@@ -59,13 +59,3 @@ data "aws_iam_policy_document" "repository_policy" {
     resources = [module.this.repository_arn]
   }
 }
-
-# Optional: Query the repository endpoint for a specific package format
-# This demonstrates how to get the repository endpoint for npm packages
-data "aws_codeartifact_repository_endpoint" "npm" {
-  count = var.is_enabled && var.enable_npm_external_connection ? 1 : 0
-
-  domain     = aws_codeartifact_domain.this[0].domain
-  repository = module.this.repository_name
-  format     = "npm"
-}
