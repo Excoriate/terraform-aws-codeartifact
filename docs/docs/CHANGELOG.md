@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/Excoriate/terraform-aws-codeartifact/compare/v0.0.2...v0.0.3) (2025-04-02)
+
+
+### 🔧 Maintenance
+
+* **docs:** release 0.0.2 ([#7](https://github.com/Excoriate/terraform-aws-codeartifact/issues/7)) ([11e5982](https://github.com/Excoriate/terraform-aws-codeartifact/commit/11e5982dfa02380a1428d87e25375eac20e1c4b4))
+
 ## [0.0.2](https://github.com/Excoriate/terraform-aws-codeartifact/compare/v0.0.1...v0.0.2) (2025-04-02)
 
 
