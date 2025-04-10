@@ -11,10 +11,108 @@
         "modules/default/versions.tf",
         "modules/default/README.md",
         "modules/default/variables.tf",
-        "modules/default/outputs.tf"
+        "modules/default/outputs.tf",
+        "modules/default/main.tf",
+        "modules/default/data.tf",
+        "modules/default/locals.tf"
       ],
       "release-labels": ["module/default", "terraform"],
       "pull-request-title-pattern": "chore(module/default): release ${version}",
+      "versioning-strategy": "default"
+    },
+    "modules/domain": {
+      "release-type": "terraform-module",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-path": "modules/domain/CHANGELOG.md",
+      "include-v-in-tag": true,
+      "extra-files": [
+        "modules/domain/versions.tf",
+        "modules/domain/README.md",
+        "modules/domain/variables.tf",
+        "modules/domain/outputs.tf",
+        "modules/domain/main.tf",
+        "modules/domain/data.tf",
+        "modules/domain/locals.tf"
+      ],
+      "release-labels": ["module/domain", "terraform"],
+      "pull-request-title-pattern": "chore(module/domain): release ${version}",
+      "versioning-strategy": "default"
+    },
+    "modules/domain-permissions": {
+      "release-type": "terraform-module",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-path": "modules/domain-permissions/CHANGELOG.md",
+      "include-v-in-tag": true,
+      "extra-files": [
+        "modules/domain-permissions/versions.tf",
+        "modules/domain-permissions/README.md",
+        "modules/domain-permissions/variables.tf",
+        "modules/domain-permissions/outputs.tf",
+        "modules/domain-permissions/main.tf",
+        "modules/domain-permissions/data.tf",
+        "modules/domain-permissions/locals.tf"
+      ],
+      "release-labels": ["module/domain-permissions", "terraform"],
+      "pull-request-title-pattern": "chore(module/domain-permissions): release ${version}",
+      "versioning-strategy": "default"
+    },
+    "modules/foundation": {
+      "release-type": "terraform-module",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-path": "modules/foundation/CHANGELOG.md",
+      "include-v-in-tag": true,
+      "extra-files": [
+        "modules/foundation/versions.tf",
+        "modules/foundation/README.md",
+        "modules/foundation/variables.tf",
+        "modules/foundation/outputs.tf",
+        "modules/foundation/main.tf",
+        "modules/foundation/data.tf",
+        "modules/foundation/locals.tf"
+      ],
+      "release-labels": ["module/foundation", "terraform"],
+      "pull-request-title-pattern": "chore(module/foundation): release ${version}",
+      "versioning-strategy": "default"
+    },
+    "modules/repository": {
+      "release-type": "terraform-module",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-path": "modules/repository/CHANGELOG.md",
+      "include-v-in-tag": true,
+      "extra-files": [
+        "modules/repository/versions.tf",
+        "modules/repository/README.md",
+        "modules/repository/variables.tf",
+        "modules/repository/outputs.tf",
+        "modules/repository/main.tf",
+        "modules/repository/data.tf",
+        "modules/repository/locals.tf"
+      ],
+      "release-labels": ["module/repository", "terraform"],
+      "pull-request-title-pattern": "chore(module/repository): release ${version}",
+      "versioning-strategy": "default"
+    },
+    "modules/repository-permissions": {
+      "release-type": "terraform-module",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-path": "modules/repository-permissions/CHANGELOG.md",
+      "include-v-in-tag": true,
+      "extra-files": [
+        "modules/repository-permissions/versions.tf",
+        "modules/repository-permissions/README.md",
+        "modules/repository-permissions/variables.tf",
+        "modules/repository-permissions/outputs.tf",
+        "modules/repository-permissions/main.tf",
+        "modules/repository-permissions/data.tf",
+        "modules/repository-permissions/locals.tf"
+      ],
+      "release-labels": ["module/repository-permissions", "terraform"],
+      "pull-request-title-pattern": "chore(module/repository-permissions): release ${version}",
       "versioning-strategy": "default"
     },
     "docs": {
