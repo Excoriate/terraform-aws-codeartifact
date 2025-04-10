@@ -30,13 +30,9 @@ module "this" {
   }
 
   # --- OIDC Provider Inputs ---
-  is_oidc_provider_enabled        = var.is_oidc_provider_enabled
-  oidc_provider_url               = var.oidc_provider_url
-  oidc_client_id_list             = var.oidc_client_id_list
-  oidc_thumbprint_list            = var.oidc_thumbprint_list
-  oidc_role_name                  = var.oidc_role_name
-  oidc_role_description           = var.oidc_role_description
-  oidc_role_max_session_duration  = var.oidc_role_max_session_duration
-  oidc_role_condition_string_like = var.oidc_role_condition_string_like
-  oidc_role_attach_policy_arns    = var.oidc_role_attach_policy_arns
+  is_oidc_provider_enabled = var.is_oidc_provider_enabled
+  oidc_provider_url        = var.oidc_provider_url
+  oidc_client_id_list      = var.oidc_client_id_list
+  oidc_thumbprint_list     = var.oidc_thumbprint_list
+  oidc_roles               = var.oidc_roles # Pass the list of role configurations
 }

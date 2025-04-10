@@ -111,21 +111,21 @@ output "s3_bucket_regional_domain_name" {
 # OIDC Outputs 🔑
 # ----------------------------------------------------
 #
-# Outputs for the IAM OIDC Provider and Role
+# Outputs for the IAM OIDC Provider and Roles
 #
 ###################################
 
 output "oidc_provider_arn" {
-  description = "The ARN of the created IAM OIDC Provider."
-  value       = try(aws_iam_openid_connect_provider.oidc[0].arn, null)
+  description = "The ARN of the IAM OIDC Provider (either created or existing, if enabled)."
+  value       = local.oidc_provider_arn # References the local that handles created vs existing
 }
 
-output "oidc_role_arn" {
-  description = "The ARN of the created IAM Role for OIDC Federation."
-  value       = try(aws_iam_role.oidc[0].arn, null)
+output "oidc_role_arns" {
+  description = "Map of created OIDC IAM Role names to their ARNs (if enabled)."
+  value       = { for k, v in aws_iam_role.oidc : k => v.arn }
 }
 
-output "oidc_role_name" {
-  description = "The name of the created IAM Role for OIDC Federation."
-  value       = try(aws_iam_role.oidc[0].name, null)
+output "oidc_role_names" {
+  description = "Map of created OIDC IAM Role names to their names (if enabled)."
+  value       = { for k, v in aws_iam_role.oidc : k => v.name }
 }
