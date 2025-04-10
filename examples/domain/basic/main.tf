@@ -1,5 +1,5 @@
 locals {
-  region      = var.aws_region
+  # region      = var.aws_region
   environment = "test"
   name        = "example"
 }
