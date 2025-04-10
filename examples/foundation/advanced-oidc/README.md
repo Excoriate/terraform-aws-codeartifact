@@ -1,6 +1,6 @@
 # AWS CodeArtifact Foundation Module - Advanced OIDC Example
 
-This example demonstrates advanced usage of the OIDC features within the AWS CodeArtifact Foundation module. It focuses on creating multiple IAM roles associated with a single OIDC provider (e.g., GitLab or GitHub Actions).
+**Focus:** This example demonstrates advanced usage of the OIDC features within the AWS CodeArtifact Foundation module. It focuses *only* on creating the OIDC provider and multiple associated IAM roles. Other foundation components (KMS Key, S3 Bucket, CloudWatch Log Group) are **disabled by default** in this example's variable definitions (`variables.tf`) to keep the focus narrow.
 
 ## Usage
 
@@ -40,11 +40,12 @@ module "this" {
 
 ## Testing with Fixtures
 
-This example includes fixtures for testing:
+This example includes fixtures for testing various OIDC scenarios:
 
-1.  **default.tfvars** - Default configuration with OIDC disabled.
-2.  **disabled.tfvars** - Disables the entire module.
-3.  **advanced-oidc.tfvars** - Enables OIDC and defines multiple roles. Customize this file with your specific provider URL, conditions, and policies.
+1.  **default.tfvars** - Default configuration (OIDC disabled, other components disabled by default). Results in no resources created.
+2.  **disabled.tfvars** - Disables the entire module (`is_enabled = false`). Results in no resources created.
+3.  **advanced-oidc.tfvars** - Enables OIDC provider creation and defines multiple roles. Customize this file with your specific provider URL, conditions, and policies. Only OIDC resources will be created unless you override `is_kms_key_enabled`, etc.
+4.  **oidc-existing.tfvars** - Enables OIDC but uses an existing provider (looked up by URL) and defines roles to trust it. Only OIDC roles will be created unless you override other feature flags.
 
 ### Using Makefile
 
@@ -55,14 +56,16 @@ A Makefile is provided for easier testing:
 make help
 
 # Plan commands
-make plan-default         # Plan with OIDC disabled
+make plan-default         # Plan with OIDC disabled (and others disabled by default)
 make plan-disabled        # Plan with module entirely disabled
-make plan-advanced        # Plan with advanced OIDC configuration
+make plan-advanced        # Plan creating OIDC provider and multiple roles
+make plan-oidc-existing   # Plan using existing OIDC provider and creating roles
 
 # Full lifecycle commands (plan, apply, destroy)
-make cycle-default        # Run full cycle with OIDC disabled
+make cycle-default        # Run full cycle with OIDC disabled (and others disabled by default)
 make cycle-disabled       # Run full cycle with module entirely disabled
-make cycle-advanced       # Run full cycle with advanced OIDC configuration
+make cycle-advanced       # Run full cycle creating OIDC provider and multiple roles
+make cycle-oidc-existing  # Run full cycle using existing OIDC provider and creating roles
 
 # Cleanup command
 make clean                # Remove .terraform directory and Terraform state files
@@ -74,8 +77,11 @@ make clean                # Remove .terraform directory and Terraform state file
 # Initialize Terraform
 terraform init
 
-# Test with advanced OIDC configuration
+# Test creating provider and roles
 terraform apply -var-file=fixtures/advanced-oidc.tfvars
+
+# Test using existing provider and creating roles
+terraform apply -var-file=fixtures/oidc-existing.tfvars
 ```
 
 <!-- BEGIN_TF_DOCS -->

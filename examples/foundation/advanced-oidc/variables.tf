@@ -13,20 +13,20 @@ variable "is_enabled" {
 ###################################
 variable "is_kms_key_enabled" {
   type        = bool
-  description = "Controls whether to create the KMS key and alias for CodeArtifact encryption."
-  default     = true
+  description = "Controls whether to create the KMS key and alias. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 variable "is_log_group_enabled" {
   type        = bool
-  description = "Controls whether to create the CloudWatch Log Group for CodeArtifact audit logs."
-  default     = true
+  description = "Controls whether to create the CloudWatch Log Group. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 variable "is_s3_bucket_enabled" {
   type        = bool
-  description = "Controls whether to create the S3 bucket for CodeArtifact backups and artifacts."
-  default     = true
+  description = "Controls whether to create the S3 bucket. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 ###################################

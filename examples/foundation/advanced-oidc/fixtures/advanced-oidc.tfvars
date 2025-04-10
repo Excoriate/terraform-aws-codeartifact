@@ -1,8 +1,13 @@
 # Fixture demonstrating advanced OIDC configuration with multiple roles.
 # Replace placeholders with your actual IdP URL, project paths, policies, etc.
+# NOTE: This example focuses on OIDC; KMS, S3, and Logs are disabled by default
+# in examples/foundation/advanced-oidc/variables.tf unless overridden here.
 
 # --- General Foundation Settings ---
-# You might want to override defaults from variables.tf here
+# You can override defaults here if needed, e.g., to enable other features:
+# is_kms_key_enabled = true
+# is_log_group_enabled = true
+# is_s3_bucket_enabled = true
 kms_key_alias            = "alias/adv-oidc-foundation-key"
 log_group_name           = "/aws/codeartifact/adv-oidc-logs"
 s3_bucket_name           = "adv-oidc-example-bucket-unique-name" # Needs to be globally unique
@@ -13,6 +18,7 @@ is_oidc_provider_enabled = true
 oidc_provider_url        = "https://gitlab.com"   # Replace with your IdP URL (e.g., https://token.actions.githubusercontent.com)
 oidc_client_id_list      = ["https://gitlab.com"] # Replace with your IdP client ID(s) (e.g., ["sts.amazonaws.com"] for GitHub)
 # oidc_thumbprint_list   = [] # Optional: Provide if auto-fetch doesn't work
+# oidc_use_existing_provider = false # Default is false (create provider)
 
 # --- OIDC Roles Definition ---
 oidc_roles = [
@@ -32,17 +38,9 @@ oidc_roles = [
     attach_policy_arns = ["arn:aws:iam::aws:policy/PowerUserAccess"]
 
     # Add inline policies (Example: Allow specific CodeArtifact actions)
+    # NOTE: Provide policy as a valid JSON string, not using jsonencode()
     inline_policies = {
-      "CodeArtifactProdPublish" = jsonencode({
-        Version = "2012-10-17",
-        Statement = [
-          {
-            Effect   = "Allow",
-            Action   = ["codeartifact:PublishPackageVersion", "sts:GetServiceBearerToken"],
-            Resource = "*" # Restrict this to specific domain/repo ARNs
-          }
-        ]
-      })
+      "CodeArtifactProdPublish" = "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"codeartifact:PublishPackageVersion\",\n        \"sts:GetServiceBearerToken\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}"
     }
   },
 
