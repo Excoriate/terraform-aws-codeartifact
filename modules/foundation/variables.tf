@@ -278,10 +278,16 @@ variable "tags" {
 
 variable "is_oidc_provider_enabled" {
   description = <<-DESC
-    Controls whether to create the IAM OIDC identity provider, role, and policy attachments
+    Controls whether to create the IAM OIDC identity provider and associated roles
     for federated access (e.g., from GitLab CI/CD or GitHub Actions).
     Set to `true` to enable this functionality.
   DESC
+  type        = bool
+  default     = false
+}
+
+variable "oidc_use_existing_provider" {
+  description = "If true, the module will use an existing OIDC provider found via the oidc_provider_url data source instead of creating a new one."
   type        = bool
   default     = false
 }
@@ -307,7 +313,7 @@ variable "oidc_client_id_list" {
     For GitLab, often the GitLab instance URL (e.g., `["https://gitlab.com"]`) or specific application IDs.
   DESC
   type        = list(string)
-  default     = ["sts.amazonaws.com"] # Common default for GitHub Actions
+  default     = ["sts.amazonaws.com"]
 }
 
 variable "oidc_thumbprint_list" {
@@ -320,54 +326,51 @@ variable "oidc_thumbprint_list" {
   default     = []
 }
 
-variable "oidc_role_name" {
-  description = "The name for the IAM role that the OIDC provider will assume."
-  type        = string
-  default     = "oidc-federated-role" # Consider making more specific, e.g., gitlab-oidc-role
-}
-
-variable "oidc_role_description" {
-  description = "Optional description for the OIDC IAM role."
-  type        = string
-  default     = "IAM role for OIDC federation"
-}
-
-variable "oidc_role_max_session_duration" {
-  description = "Maximum session duration (in seconds) for the OIDC IAM role (3600-43200)."
-  type        = number
-  default     = 3600 # 1 hour
-
-  validation {
-    condition     = var.oidc_role_max_session_duration >= 3600 && var.oidc_role_max_session_duration <= 43200
-    error_message = "The maximum session duration must be between 3600 (1 hour) and 43200 (12 hours) seconds."
-  }
-}
-
-variable "oidc_role_condition_string_like" {
+variable "oidc_roles" {
   description = <<-DESC
-    Map defining the StringLike conditions for the AssumeRoleWithWebIdentity policy statement.
-    Keys are the condition variables (e.g., `gitlab.com:sub` or `token.actions.githubusercontent.com:sub`),
-    and values are lists of allowed patterns (e.g., `["project_path:mygroup/myproject:ref_type:branch:ref:*"]` for GitLab,
-    `["repo:MyOrg/MyRepo:ref:refs/heads/main"]` for GitHub). Required if `is_oidc_provider_enabled` is true.
-    Example for GitLab: `{"gitlab.com:sub" = ["project_path:yourgroup/yourproject:ref_type:branch:ref:main"]}`
-    Example for GitHub: `{"token.actions.githubusercontent.com:sub" = ["repo:yourorg/yourrepo:ref:refs/heads/main"]}`
+  List of OIDC roles to create, associated with the OIDC provider. Each object in the list defines a role.
+  - `name`: (Required) The name for the IAM role.
+  - `description`: (Optional) Description for the IAM role.
+  - `max_session_duration`: (Optional) Maximum session duration in seconds (3600-43200). Defaults to 3600.
+  - `condition_string_like`: (Required) Map defining the StringLike conditions for the AssumeRoleWithWebIdentity policy statement.
+      Keys are condition variables (e.g., `gitlab.com:sub`), values are lists of allowed patterns.
+      Example for GitLab: `{"gitlab.com:sub" = ["project_path:yourgroup/yourproject:ref_type:branch:ref:main"]}`
+      Example for GitHub: `{"token.actions.githubusercontent.com:sub" = ["repo:yourorg/yourrepo:ref:refs/heads/main"]}`
+  - `attach_policy_arns`: (Optional) List of managed IAM policy ARNs to attach to this role. Defaults to empty list.
+  - `inline_policies`: (Optional) Map of inline IAM policies to attach to this role. Keys are policy names, values are policy JSON strings. Defaults to empty map.
   DESC
-  type        = map(list(string))
-  default     = {} # Required if enabled, validation in locals/data source
+  type = list(object({
+    name                  = string
+    description           = optional(string, "IAM role for OIDC federation")
+    max_session_duration  = optional(number, 3600)
+    condition_string_like = map(list(string))
+    attach_policy_arns    = optional(list(string), [])
+    inline_policies       = optional(map(string), {})
+  }))
+  default = []
 
   validation {
-    condition     = var.is_oidc_provider_enabled == false || length(keys(var.oidc_role_condition_string_like)) > 0
-    error_message = "If OIDC provider is enabled, oidc_role_condition_string_like must be provided with at least one condition."
+    # Check if OIDC is enabled, then roles must be provided if enabled.
+    condition     = var.is_oidc_provider_enabled == false || length(var.oidc_roles) > 0
+    error_message = "If is_oidc_provider_enabled is true, at least one role must be defined in oidc_roles."
   }
-}
-
-variable "oidc_role_attach_policy_arns" {
-  description = "List of managed IAM policy ARNs to attach to the OIDC role."
-  type        = list(string)
-  default     = []
 
   validation {
-    condition     = alltrue([for arn in var.oidc_role_attach_policy_arns : can(regex("^arn:aws:iam::([0-9]{12}|aws):policy/", arn))])
-    error_message = "Each item in oidc_role_attach_policy_arns must be a valid IAM policy ARN."
+    # Validate attributes within each role object
+    condition = alltrue([
+      for role in var.oidc_roles : (
+        # Validate name (basic check, IAM has stricter rules applied at creation)
+        can(regex("^[\\w+=,.@-]+$", role.name)) &&
+        # Validate max_session_duration
+        role.max_session_duration >= 3600 && role.max_session_duration <= 43200 &&
+        # Validate condition_string_like is not empty
+        length(keys(role.condition_string_like)) > 0 &&
+        # Validate attach_policy_arns format
+        alltrue([for arn in role.attach_policy_arns : can(regex("^arn:aws:iam::([0-9]{12}|aws):policy/", arn))]) &&
+        # Validate inline_policies JSON format
+        alltrue([for policy_json in values(role.inline_policies) : can(jsondecode(policy_json))])
+      )
+    ])
+    error_message = "Validation failed for one or more roles in oidc_roles. Check name format, max_session_duration (3600-43200), ensure condition_string_like is provided, attach_policy_arns format, and inline_policies JSON validity."
   }
 }

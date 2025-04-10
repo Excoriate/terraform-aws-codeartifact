@@ -1,5 +1,5 @@
 ###################################
-# Basic Example Variables 📝
+# Advanced OIDC Example Variables 📝
 ###################################
 
 variable "is_enabled" {
@@ -13,20 +13,20 @@ variable "is_enabled" {
 ###################################
 variable "is_kms_key_enabled" {
   type        = bool
-  description = "Controls whether to create the KMS key and alias for CodeArtifact encryption."
-  default     = true
+  description = "Controls whether to create the KMS key and alias. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 variable "is_log_group_enabled" {
   type        = bool
-  description = "Controls whether to create the CloudWatch Log Group for CodeArtifact audit logs."
-  default     = true
+  description = "Controls whether to create the CloudWatch Log Group. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 variable "is_s3_bucket_enabled" {
   type        = bool
-  description = "Controls whether to create the S3 bucket for CodeArtifact backups and artifacts."
-  default     = true
+  description = "Controls whether to create the S3 bucket. Disabled by default in this OIDC-focused example."
+  default     = false # Focus: OIDC only
 }
 
 ###################################
@@ -41,7 +41,7 @@ variable "aws_region" {
 variable "environment" {
   type        = string
   description = "Environment name for resource tagging and naming."
-  default     = "dev"
+  default     = "dev-advanced" # Different default for advanced example
 }
 
 ###################################
@@ -56,7 +56,13 @@ variable "kms_deletion_window_in_days" {
 variable "kms_key_alias" {
   type        = string
   description = "The alias for the KMS key, must begin with 'alias/'."
-  default     = "alias/codeartifact-encryption"
+  default     = "alias/codeartifact-adv-oidc-encryption" # Different default
+}
+
+variable "kms_key_policy" {
+  type        = string
+  description = "Optional custom IAM policy for the KMS key (JSON string). If null, module default is used."
+  default     = null
 }
 
 ###################################
@@ -65,7 +71,7 @@ variable "kms_key_alias" {
 variable "s3_bucket_name" {
   type        = string
   description = "The name of the S3 bucket for CodeArtifact backups and migration artifacts."
-  default     = "codeartifact-artifacts-example"
+  default     = "codeartifact-artifacts-adv-oidc-example" # Different default
 }
 
 variable "s3_bucket_force_destroy" {
@@ -74,13 +80,35 @@ variable "s3_bucket_force_destroy" {
   default     = true
 }
 
+variable "s3_bucket_policy_override" {
+  type        = string
+  description = "Optional custom bucket policy (JSON string) to override the default policy. If null, default + additional policies are used."
+  default     = null
+}
+
+variable "additional_bucket_policies" {
+  type = list(object({
+    sid     = string
+    effect  = string
+    actions = list(string)
+    principals = object({
+      type        = string
+      identifiers = list(string)
+    })
+    resources = list(string)
+    condition = optional(map(map(string)), null)
+  }))
+  description = "List of additional bucket policy statements to merge with the default policy (ignored if override is set)."
+  default     = []
+}
+
 ###################################
 # CloudWatch Log Group Configuration Variables
 ###################################
 variable "log_group_name" {
   type        = string
   description = "The name of the CloudWatch Log Group for CodeArtifact audit logs."
-  default     = "/aws/codeartifact/audit-logs"
+  default     = "/aws/codeartifact/adv-oidc-audit-logs" # Different default
 }
 
 variable "log_retention_days" {
@@ -95,7 +123,7 @@ variable "log_retention_days" {
 variable "codeartifact_domain_name" {
   type        = string
   description = "The name of the CodeArtifact domain to create. This provides a consistent naming convention for resources."
-  default     = "example-domain"
+  default     = "adv-oidc-example-domain" # Different default
 }
 
 
@@ -104,13 +132,13 @@ variable "codeartifact_domain_name" {
 variable "is_oidc_provider_enabled" {
   description = "Pass-through for module's is_oidc_provider_enabled."
   type        = bool
-  default     = false # Default to disabled in the basic example
+  default     = true # Default to enabled in the advanced example
 }
 
 variable "oidc_provider_url" {
   description = "Pass-through for module's oidc_provider_url."
   type        = string
-  default     = null # Must be set in fixture if is_oidc_provider_enabled = true
+  default     = null # Must be set in fixture
 }
 
 variable "oidc_client_id_list" {
@@ -135,5 +163,5 @@ variable "oidc_roles" {
     attach_policy_arns    = optional(list(string), [])
     inline_policies       = optional(map(string), {})
   }))
-  default = [] # Default to no roles in the basic example unless specified in fixtures
+  default = [] # Must be set in fixture
 }

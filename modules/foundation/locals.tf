@@ -10,10 +10,12 @@ locals {
   # 4. `is_s3_bucket_enabled` - Flag to control S3 bucket creation
   #
   ###################################
-  is_enabled           = var.is_enabled
-  is_kms_key_enabled   = local.is_enabled && var.is_kms_key_enabled
-  is_log_group_enabled = local.is_enabled && var.is_log_group_enabled
-  is_s3_bucket_enabled = local.is_enabled && var.is_s3_bucket_enabled
+  is_enabled                = var.is_enabled
+  is_kms_key_enabled        = local.is_enabled && var.is_kms_key_enabled
+  is_log_group_enabled      = local.is_enabled && var.is_log_group_enabled
+  is_s3_bucket_enabled      = local.is_enabled && var.is_s3_bucket_enabled
+  is_oidc_provider_enabled  = local.is_enabled && var.is_oidc_provider_enabled
+  is_oidc_existing_provider = local.is_oidc_provider_enabled && var.oidc_use_existing_provider
 
   ###################################
   # Resource Naming 🏷️
@@ -166,11 +168,10 @@ locals {
   # Locals related to OIDC provider configuration
   #
   ###################################
-  is_oidc_provider_enabled = local.is_enabled && var.is_oidc_provider_enabled
-
   # Determine the final thumbprint list: use provided list if not empty, otherwise attempt to use the fetched one.
-  # Defaults to empty list if OIDC is disabled or fetching fails/is not attempted.
-  oidc_thumbprint_list_final = local.is_oidc_provider_enabled ? (
+  # Only relevant when creating the provider (var.oidc_use_existing_provider is false).
+  # Defaults to empty list if OIDC is disabled, using existing, or fetching fails/is not attempted.
+  oidc_thumbprint_list_final = local.is_oidc_provider_enabled && !var.oidc_use_existing_provider ? (
     length(var.oidc_thumbprint_list) > 0 ? var.oidc_thumbprint_list : try(
       # Access data source only if its count is > 0
       [data.tls_certificate.oidc[0].certificates[0].sha1_fingerprint],
@@ -178,4 +179,32 @@ locals {
       []
     )
   ) : []
+
+  # Determine the OIDC provider ARN based on whether we created it or used an existing one
+  oidc_provider_arn = local.is_oidc_provider_enabled ? (
+    var.oidc_use_existing_provider ?
+    try(data.aws_iam_openid_connect_provider.existing[0].arn, null) : # Get ARN from data source
+    try(resource.aws_iam_openid_connect_provider.oidc[0].arn, null)   # Get ARN from created resource
+  ) : null
+
+  # Flattened list for creating managed policy attachments for OIDC roles
+  oidc_managed_policy_attachments = local.is_oidc_provider_enabled ? flatten([
+    for role in var.oidc_roles : [
+      for policy_arn in role.attach_policy_arns : {
+        role_name  = role.name
+        policy_arn = policy_arn
+      }
+    ]
+  ]) : []
+
+  # Flattened list for creating inline policies for OIDC roles
+  oidc_inline_policy_definitions = local.is_oidc_provider_enabled ? flatten([
+    for role in var.oidc_roles : [
+      for policy_name, policy_json in role.inline_policies : {
+        role_name   = role.name
+        policy_name = policy_name
+        policy_json = policy_json
+      }
+    ]
+  ]) : []
 }

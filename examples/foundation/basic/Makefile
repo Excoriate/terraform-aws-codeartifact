@@ -5,10 +5,10 @@
 AWS_REGION ?= us-west-2
 
 .PHONY: help init \
-        plan-default plan-disabled plan-kms-disabled plan-s3-disabled plan-logs-disabled plan-oidc-gitlab plan-oidc-github \
-        apply-default apply-disabled apply-kms-disabled apply-s3-disabled apply-logs-disabled apply-oidc-gitlab apply-oidc-github \
-        destroy-default destroy-disabled destroy-kms-disabled destroy-s3-disabled destroy-logs-disabled destroy-oidc-gitlab destroy-oidc-github \
-        cycle-default cycle-disabled cycle-kms-disabled cycle-s3-disabled cycle-logs-disabled cycle-oidc-gitlab cycle-oidc-github \
+        plan-default plan-disabled plan-kms-disabled plan-s3-disabled plan-logs-disabled plan-oidc-gitlab plan-oidc-github plan-oidc-existing \
+        apply-default apply-disabled apply-kms-disabled apply-s3-disabled apply-logs-disabled apply-oidc-gitlab apply-oidc-github apply-oidc-existing \
+        destroy-default destroy-disabled destroy-kms-disabled destroy-s3-disabled destroy-logs-disabled destroy-oidc-gitlab destroy-oidc-github destroy-oidc-existing \
+        cycle-default cycle-disabled cycle-kms-disabled cycle-s3-disabled cycle-logs-disabled cycle-oidc-gitlab cycle-oidc-github cycle-oidc-existing \
         clean
 
 # Default target when just running 'make'
@@ -24,8 +24,9 @@ help:
 	@echo "  make plan-kms-disabled    - Plan with KMS key component disabled"
 	@echo "  make plan-s3-disabled     - Plan with S3 bucket component disabled"
 	@echo "  make plan-logs-disabled   - Plan with CloudWatch logs component disabled"
-	@echo "  make plan-oidc-gitlab     - Plan with GitLab OIDC provider enabled"
-	@echo "  make plan-oidc-github     - Plan with GitHub OIDC provider enabled"
+	@echo "  make plan-oidc-gitlab     - Plan with GitLab OIDC provider created"
+	@echo "  make plan-oidc-github     - Plan with GitHub OIDC provider created"
+	@echo "  make plan-oidc-existing   - Plan using an existing OIDC provider"
 	@echo ""
 	@echo "  Apply commands (terraform apply -auto-approve):"
 	@echo "  make apply-default        - Apply with all components enabled"
@@ -33,8 +34,9 @@ help:
 	@echo "  make apply-kms-disabled   - Apply with KMS key component disabled"
 	@echo "  make apply-s3-disabled    - Apply with S3 bucket component disabled"
 	@echo "  make apply-logs-disabled  - Apply with CloudWatch logs component disabled"
-	@echo "  make apply-oidc-gitlab    - Apply with GitLab OIDC provider enabled"
-	@echo "  make apply-oidc-github    - Apply with GitHub OIDC provider enabled"
+	@echo "  make apply-oidc-gitlab    - Apply with GitLab OIDC provider created"
+	@echo "  make apply-oidc-github    - Apply with GitHub OIDC provider created"
+	@echo "  make apply-oidc-existing  - Apply using an existing OIDC provider"
 	@echo ""
 	@echo "  Destroy commands (terraform destroy -auto-approve):"
 	@echo "  make destroy-default      - Destroy resources with all components enabled"
@@ -42,8 +44,9 @@ help:
 	@echo "  make destroy-kms-disabled - Destroy resources with KMS key component disabled"
 	@echo "  make destroy-s3-disabled  - Destroy resources with S3 bucket component disabled"
 	@echo "  make destroy-logs-disabled- Destroy resources with CloudWatch logs component disabled"
-	@echo "  make destroy-oidc-gitlab  - Destroy resources with GitLab OIDC provider enabled"
-	@echo "  make destroy-oidc-github  - Destroy resources with GitHub OIDC provider enabled"
+	@echo "  make destroy-oidc-gitlab  - Destroy resources with GitLab OIDC provider created"
+	@echo "  make destroy-oidc-github  - Destroy resources with GitHub OIDC provider created"
+	@echo "  make destroy-oidc-existing- Destroy resources using an existing OIDC provider"
 	@echo ""
 	@echo "  Complete cycle commands (plan, apply, and destroy):"
 	@echo "  make cycle-default        - Run full cycle with all components enabled"
@@ -51,8 +54,9 @@ help:
 	@echo "  make cycle-kms-disabled   - Run full cycle with KMS key component disabled"
 	@echo "  make cycle-s3-disabled    - Run full cycle with S3 bucket component disabled"
 	@echo "  make cycle-logs-disabled  - Run full cycle with CloudWatch logs component disabled"
-	@echo "  make cycle-oidc-gitlab    - Run full cycle with GitLab OIDC provider enabled"
-	@echo "  make cycle-oidc-github    - Run full cycle with GitHub OIDC provider enabled"
+	@echo "  make cycle-oidc-gitlab    - Run full cycle with GitLab OIDC provider created"
+	@echo "  make cycle-oidc-github    - Run full cycle with GitHub OIDC provider created"
+	@echo "  make cycle-oidc-existing  - Run full cycle using an existing OIDC provider"
 	@echo ""
 	@echo "  Utility commands:"
 	@echo "  make clean                - Remove .terraform directory and other Terraform files"
@@ -94,6 +98,10 @@ plan-oidc-github: init
 	@echo "Planning with oidc_github fixture..."
 	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars
 
+plan-oidc-existing: init
+	@echo "Planning with oidc-existing fixture..."
+	terraform plan -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc-existing.tfvars
+
 # Apply commands
 apply-default: init
 	@echo "Applying with default fixture (all components enabled)..."
@@ -122,6 +130,10 @@ apply-oidc-gitlab: init
 apply-oidc-github: init
 	@echo "Applying with oidc_github fixture..."
 	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
+
+apply-oidc-existing: init
+	@echo "Applying with oidc-existing fixture..."
+	terraform apply -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc-existing.tfvars -auto-approve
 
 # Destroy commands
 destroy-default: init
@@ -152,6 +164,10 @@ destroy-oidc-github: init
 	@echo "Destroying resources with oidc_github fixture..."
 	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc_github.tfvars -auto-approve
 
+destroy-oidc-existing: init
+	@echo "Destroying resources with oidc-existing fixture..."
+	terraform destroy -var="aws_region=${AWS_REGION}" -var-file=fixtures/oidc-existing.tfvars -auto-approve
+
 # Run full cycle commands
 cycle-default: plan-default apply-default destroy-default
 	@echo "Completed full cycle with default fixture (all components enabled)"
@@ -173,6 +189,9 @@ cycle-oidc-gitlab: plan-oidc-gitlab apply-oidc-gitlab destroy-oidc-gitlab
 
 cycle-oidc-github: plan-oidc-github apply-oidc-github destroy-oidc-github
 	@echo "Completed full cycle with oidc_github fixture"
+
+cycle-oidc-existing: plan-oidc-existing apply-oidc-existing destroy-oidc-existing
+	@echo "Completed full cycle with oidc-existing fixture"
 
 # Clean up Terraform files
 clean:

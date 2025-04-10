@@ -1,0 +1,100 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    # Show modules called by this example (which is just the foundation module)
+    - modules
+    # Do not show resources directly created by the example itself (usually none)
+    # - resources
+
+content: |-
+  # Advanced OIDC Example: AWS CodeArtifact Foundation Module
+
+  ## Overview
+  > **Note:** This example demonstrates advanced usage of the OIDC features within the `foundation` module found in `modules/foundation`. It focuses on creating multiple IAM roles associated with a single OIDC provider (e.g., GitLab).
+
+  ### 🔑 Key Features Demonstrated
+  - Defining multiple roles using the `oidc_roles` input variable.
+  - Configuring different conditions (`condition_string_like`) for each role.
+  - Attaching different managed policies (`attach_policy_arns`) to each role.
+  - Adding inline policies (`inline_policies`) to specific roles.
+  - Using fixtures (`fixtures/*.tfvars`) to test the advanced OIDC configuration.
+
+  ### 📋 Usage Guidelines
+  1.  **Configure:** Use the `fixtures/advanced-oidc.tfvars` file as a template. Customize the `oidc_provider_url`, `oidc_client_id_list`, and the details within each object in the `oidc_roles` list (names, conditions, policies).
+      ```tfvars
+      # fixtures/advanced-oidc.tfvars (Example Structure)
+      aws_region               = "us-east-1"
+      kms_key_alias            = "alias/adv-oidc-foundation-key"
+      log_group_name           = "/aws/codeartifact/adv-oidc-logs"
+      s3_bucket_name           = "adv-oidc-example-bucket-unique-name"
+      codeartifact_domain_name = "adv-oidc-domain"
+
+      is_oidc_provider_enabled = true
+      oidc_provider_url        = "https://gitlab.com" # Or your IdP URL
+      oidc_client_id_list      = ["https://gitlab.com"]
+
+      oidc_roles = [
+        {
+          name        = "gitlab-prod-deployer"
+          description = "Role for production deployments from GitLab"
+          condition_string_like = {
+            "gitlab.com:sub" = ["project_path:your-group/your-project:ref_type:tag:ref:v*"] # Tags starting with v
+          }
+          attach_policy_arns = ["arn:aws:iam::aws:policy/PowerUserAccess"] # Example, use least privilege
+          inline_policies = {
+            "SpecificProdPermissions" = jsonencode({ ... })
+          }
+        },
+        {
+          name        = "gitlab-dev-tester"
+          description = "Role for development testing from GitLab"
+          condition_string_like = {
+            "gitlab.com:sub" = ["project_path:your-group/your-project:ref_type:branch:ref:feature/*"] # Feature branches
+          }
+          attach_policy_arns = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
+        }
+      ]
+      ```
+  2.  **Initialize:** Run `terraform init`.
+  3.  **Plan:** Run `terraform plan -var-file=fixtures/advanced-oidc.tfvars`.
+  4.  **Apply:** Run `terraform apply -var-file=fixtures/advanced-oidc.tfvars`.
+  5.  **Makefile:** Alternatively, use the provided `Makefile` targets (e.g., `make plan-advanced`, `make apply-advanced`).
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

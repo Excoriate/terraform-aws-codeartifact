@@ -127,17 +127,18 @@ resource "aws_s3_bucket_policy" "this" {
 
 
 ###################################
-# OIDC Provider and Role 🔑
+# OIDC Provider and Roles 🔑
 # ----------------------------------------------------
 #
-# Creates an IAM OIDC provider and an associated role
+# Creates an IAM OIDC provider and associated roles
 # for federated access from CI/CD systems like
 # GitLab or GitHub Actions.
 #
 ###################################
 
 resource "aws_iam_openid_connect_provider" "oidc" {
-  count = local.is_oidc_provider_enabled ? 1 : 0
+  # Create provider only if OIDC is enabled AND we are not using an existing one
+  count = local.is_oidc_provider_enabled && !var.oidc_use_existing_provider ? 1 : 0
 
   url             = var.oidc_provider_url
   client_id_list  = var.oidc_client_id_list
@@ -150,27 +151,41 @@ resource "aws_iam_openid_connect_provider" "oidc" {
 }
 
 resource "aws_iam_role" "oidc" {
-  count = local.is_oidc_provider_enabled ? 1 : 0
+  # Create one role for each entry in var.oidc_roles if OIDC is enabled
+  for_each = local.is_oidc_provider_enabled ? { for role in var.oidc_roles : role.name => role } : {}
 
-  name                 = var.oidc_role_name
-  description          = var.oidc_role_description
-  assume_role_policy   = data.aws_iam_policy_document.oidc_assume_role[0].json
-  max_session_duration = var.oidc_role_max_session_duration
+  name                 = each.value.name
+  description          = each.value.description
+  assume_role_policy   = data.aws_iam_policy_document.oidc_assume_role[each.key].json # Use the specific policy doc for this role
+  max_session_duration = each.value.max_session_duration
   tags = merge(
     local.common_tags,
-    { Name = var.oidc_role_name }
+    { Name = each.value.name }
   )
 
-  # Ensure OIDC provider exists before creating the role that trusts it
-  depends_on = [aws_iam_openid_connect_provider.oidc]
+  # Ensure OIDC provider exists (either created or data source read) before creating the roles that trust it
+  depends_on = [aws_iam_openid_connect_provider.oidc, data.aws_iam_openid_connect_provider.existing]
 }
 
 resource "aws_iam_role_policy_attachment" "oidc" {
-  # Create an attachment for each policy ARN provided, only if OIDC is enabled
-  for_each = local.is_oidc_provider_enabled ? toset(var.oidc_role_attach_policy_arns) : toset([])
+  # Create attachments based on the flattened local variable
+  for_each = { for attachment in local.oidc_managed_policy_attachments : "${attachment.role_name}/${attachment.policy_arn}" => attachment }
 
-  role       = aws_iam_role.oidc[0].name
-  policy_arn = each.value
+  role       = aws_iam_role.oidc[each.value.role_name].name # Reference the role created in the loop above
+  policy_arn = each.value.policy_arn
 
-  depends_on = [aws_iam_role.oidc] # Ensure role exists before attaching policies
+  # Ensure the specific role exists before attaching policies
+  depends_on = [aws_iam_role.oidc]
+}
+
+resource "aws_iam_role_policy" "oidc_inline" {
+  # Create inline policies based on the flattened local variable
+  for_each = { for policy in local.oidc_inline_policy_definitions : "${policy.role_name}/${policy.policy_name}" => policy }
+
+  name   = each.value.policy_name
+  role   = aws_iam_role.oidc[each.value.role_name].id # Reference the role created in the loop above
+  policy = each.value.policy_json
+
+  # Ensure the specific role exists before attaching policies
+  depends_on = [aws_iam_role.oidc]
 }
