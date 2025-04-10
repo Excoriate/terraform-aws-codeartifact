@@ -155,5 +155,6 @@ No modules.
 | <a name="output_domain_name"></a> [domain\_name](#output\_domain\_name) | The name of the CodeArtifact domain. |
 | <a name="output_domain_owner"></a> [domain\_owner](#output\_domain\_owner) | The AWS account ID that owns the CodeArtifact domain. |
 | <a name="output_domain_repository_count"></a> [domain\_repository\_count](#output\_domain\_repository\_count) | The number of repositories in the CodeArtifact domain. |
+| <a name="output_domain_s3_bucket_arn"></a> [domain\_s3\_bucket\_arn](#output\_domain\_s3\_bucket\_arn) | The ARN of the S3 bucket used for domain assets. |
 | <a name="output_is_enabled"></a> [is\_enabled](#output\_is\_enabled) | Whether the domain module is enabled or not. |
 <!-- END_TF_DOCS -->
