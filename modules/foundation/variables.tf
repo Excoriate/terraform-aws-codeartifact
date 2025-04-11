@@ -56,6 +56,12 @@ variable "is_s3_bucket_enabled" {
   default     = true
 }
 
+variable "is_s3_replication_enabled" {
+  type        = bool
+  description = "Controls whether to enable S3 bucket replication configuration. Requires is_s3_bucket_enabled to be true. If enabled, s3_replication_role_arn and s3_replication_destination must be provided."
+  default     = false
+}
+
 ###################################
 # KMS Key Variables 🔐
 ###################################
@@ -260,6 +266,42 @@ variable "codeartifact_domain_name" {
   description = <<-DESC
   The name of the CodeArtifact domain to create. If it's not set, it'll default to 'awsca-default'.
   DESC
+}
+
+variable "s3_replication_role_arn" {
+  type        = string
+  description = "ARN of the IAM role that S3 assumes when replicating objects. Required if is_s3_replication_enabled is true."
+  default     = null
+
+  validation {
+    condition     = var.is_s3_replication_enabled == false || var.s3_replication_role_arn != null
+    error_message = "s3_replication_role_arn must be provided when is_s3_replication_enabled is true."
+  }
+  validation {
+    condition     = var.s3_replication_role_arn == null || can(regex("^arn:aws:iam::[0-9]{12}:role/", var.s3_replication_role_arn))
+    error_message = "s3_replication_role_arn must be a valid IAM role ARN."
+  }
+}
+
+variable "s3_replication_destination" {
+  type = object({
+    bucket_arn    = string
+    storage_class = optional(string, "STANDARD")
+    # Future options like metrics, encryption_configuration could be added here
+  })
+  description = "Configuration for the replication destination bucket. `bucket_arn` is required. `storage_class` defaults to STANDARD."
+  default     = null
+
+  validation {
+    condition     = var.is_s3_replication_enabled == false || var.s3_replication_destination != null
+    error_message = "s3_replication_destination must be provided when is_s3_replication_enabled is true."
+  }
+  validation {
+    # Validate bucket_arn format within the object
+    condition     = var.s3_replication_destination == null || can(regex("^arn:aws:s3:::", var.s3_replication_destination.bucket_arn))
+    error_message = "s3_replication_destination.bucket_arn must be a valid S3 bucket ARN (e.g., arn:aws:s3:::bucket-name)."
+  }
+  # Add validation for storage_class if needed, e.g., check against allowed values
 }
 
 ###################################

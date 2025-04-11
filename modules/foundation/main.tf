@@ -125,6 +125,40 @@ resource "aws_s3_bucket_policy" "this" {
   policy = local.bucket_policy
 }
 
+###################################
+# S3 Bucket Replication Configuration 🔄
+# ----------------------------------------------------
+#
+# Optional configuration for replicating S3 bucket contents
+# to another bucket.
+#
+###################################
+resource "aws_s3_bucket_replication_configuration" "this" {
+  count = local.is_replication_configuration_enabled ? 1 : 0
+
+  depends_on = [aws_s3_bucket_versioning.this] # Ensure versioning is applied first
+
+  role   = var.s3_replication_role_arn
+  bucket = aws_s3_bucket.this[0].id
+
+  rule {
+    id     = "default-replication-rule" # Simple ID for the single rule allowed by the module currently
+    status = "Enabled"
+
+    # Use an empty filter block for V2 config to replicate all objects
+    # To filter, the caller would need to manage this resource outside the module
+    # or the module inputs would need to be significantly more complex.
+    filter {}
+
+    destination {
+      bucket        = var.s3_replication_destination.bucket_arn
+      storage_class = var.s3_replication_destination.storage_class
+      # Add other destination options like metrics, encryption_configuration if needed in future enhancements
+    }
+
+    # Add source_selection_criteria if needed in future enhancements
+  }
+}
 
 ###################################
 # OIDC Provider and Roles 🔑
