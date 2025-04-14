@@ -3,6 +3,6 @@
   "docs": "0.0.3",
   ".": "0.0.1",
   "modules/repository-permissions": "0.1.0",
-  "modules/domain-permissions": "0.1.0",
+  "modules/domain-permissions": "0.1.1",
   "modules/repository": "0.1.0"
 }
