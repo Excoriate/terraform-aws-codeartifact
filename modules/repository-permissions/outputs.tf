@@ -12,6 +12,7 @@ output "policy_document" {
   description = "The generated JSON policy document applied to the repository."
   # Access with [0] because the data source uses count = var.is_enabled ? 1 : 0
   value = local.create_policy ? data.aws_iam_policy_document.combined[0].json : null
+  sensitive = true
 }
 
 output "is_enabled" {

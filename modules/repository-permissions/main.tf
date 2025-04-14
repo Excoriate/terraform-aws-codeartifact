@@ -10,7 +10,4 @@ resource "aws_codeartifact_repository_permissions_policy" "this" {
   # Use the JSON output from the combined policy document data source
   # Access with [0] because the data source uses count = var.is_enabled ? 1 : 0
   policy_document = data.aws_iam_policy_document.combined[0].json
-
-  # Note: No explicit depends_on needed here as the dependency on data sources
-  # is handled implicitly by referencing their outputs/attributes.
 }
