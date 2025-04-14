@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.0 (2025-04-14)
+
+## [0.1.0](https://github.com/Excoriate/terraform-aws-codeartifact/compare/v0.0.4...v0.1.0) (2025-04-14)
 
 
 ### Features
