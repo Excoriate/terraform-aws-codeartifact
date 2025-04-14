@@ -1,8 +1,9 @@
 {
   "modules/default": "0.0.2",
   "docs": "0.0.3",
-  ".": "0.0.1",
   "modules/repository-permissions": "0.1.0",
+  "modules/repository": "0.1.0",
   "modules/domain-permissions": "0.1.1",
-  "modules/repository": "0.1.0"
+  "modules/domain": "0.1.0",
+  "modules/foundation": "0.1.0"
 }
