@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.2](https://github.com/Excoriate/terraform-aws-codeartifact/compare/v0.1.1...v0.1.2) (2025-04-14)
+
+
+### ✨ Features
+
+* **repository:** Add sensitive flag to policy_revision output ([#18](https://github.com/Excoriate/terraform-aws-codeartifact/issues/18)) ([c150cf7](https://github.com/Excoriate/terraform-aws-codeartifact/commit/c150cf75ed7eea0d40f0ac5d19bf74757ab0f7a8))
+
+
+### 🔧 Maintenance
+
+* **module/repository:** release 0.1.0 ([#14](https://github.com/Excoriate/terraform-aws-codeartifact/issues/14)) ([cd9af54](https://github.com/Excoriate/terraform-aws-codeartifact/commit/cd9af5436c43b06a3f3655ce367df2fb2a9136ab))
+* **module/repository:** release 0.1.1 ([#16](https://github.com/Excoriate/terraform-aws-codeartifact/issues/16)) ([b96fffc](https://github.com/Excoriate/terraform-aws-codeartifact/commit/b96fffc249918bad8aac8a30dbc8ed85a6b077e2))
+
 ## [0.1.1](https://github.com/Excoriate/terraform-aws-codeartifact/compare/v0.1.0...v0.1.1) (2025-04-14)
 
 
