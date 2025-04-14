@@ -155,6 +155,10 @@ resource "aws_s3_bucket_replication_configuration" "this" {
       storage_class = var.s3_replication_destination.storage_class
       # Add other destination options like metrics, encryption_configuration if needed in future enhancements
     }
+    delete_marker_replication {
+      // TODO: Maybe offer this as part of the module's interface
+      status = "Enabled"
+    }
 
     # Add source_selection_criteria if needed in future enhancements
   }

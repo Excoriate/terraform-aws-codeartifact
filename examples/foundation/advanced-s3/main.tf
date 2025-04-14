@@ -54,6 +54,7 @@ module "replica_foundation" {
 ###################################
 
 data "aws_iam_policy_document" "assume_role" {
+  count    = var.is_enabled ? 1 : 0
   provider = aws.source
 
   statement {
@@ -78,10 +79,11 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "replication" {
+  count    = var.is_enabled ? 1 : 0
   provider = aws.source # Role created in the source region
 
   name               = var.replication_role_name
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.assume_role[0].json # Add index [0]
   tags = merge(
     var.tags,
     { Name = var.replication_role_name }
@@ -89,6 +91,7 @@ resource "aws_iam_role" "replication" {
 }
 
 data "aws_iam_policy_document" "replication" {
+  count    = var.is_enabled ? 1 : 0
   provider = aws.source
 
   # Policy based on AWS documentation for S3 replication
@@ -136,10 +139,11 @@ data "aws_iam_policy_document" "replication" {
 }
 
 resource "aws_iam_policy" "replication" {
+  count    = var.is_enabled ? 1 : 0
   provider = aws.source # Policy created in the source region
 
   name   = "${var.replication_role_name}-policy"
-  policy = data.aws_iam_policy_document.replication.json
+  policy = data.aws_iam_policy_document.replication[0].json # Add index [0]
   tags = merge(
     var.tags,
     { Name = "${var.replication_role_name}-policy" }
@@ -147,10 +151,11 @@ resource "aws_iam_policy" "replication" {
 }
 
 resource "aws_iam_role_policy_attachment" "replication" {
+  count    = var.is_enabled ? 1 : 0
   provider = aws.source # Attachment in the source region
 
-  role       = aws_iam_role.replication.name
-  policy_arn = aws_iam_policy.replication.arn
+  role       = aws_iam_role.replication[0].name
+  policy_arn = aws_iam_policy.replication[0].arn # Add index [0]
 }
 
 
@@ -175,13 +180,13 @@ module "this" {
   s3_bucket_name = var.source_bucket_name # Use variable defined for this example
 
   # --- S3 Replication Configuration ---
-  is_s3_replication_enabled = true
-  s3_replication_role_arn   = aws_iam_role.replication.arn
-  s3_replication_destination = {
+  is_s3_replication_enabled = var.is_enabled
+  s3_replication_role_arn   = var.is_enabled ? aws_iam_role.replication[0].arn : null # Pass null if disabled or replication off
+  s3_replication_destination = var.is_enabled ? {                                     # Pass null if disabled or replication off
     # Reference replica bucket ARN from replica module output
     bucket_arn = module.replica_foundation.s3_bucket_arn
     # storage_class = "STANDARD_IA" # Optional: specify replica storage class
-  }
+  } : null
 
   # --- Other Foundation Inputs (using example vars/defaults) ---
   kms_key_alias            = var.kms_key_alias            # Required by module if KMS enabled

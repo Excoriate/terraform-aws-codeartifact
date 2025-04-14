@@ -109,10 +109,12 @@ output "replica_s3_bucket_arn" {
 
 output "replication_iam_role_arn" {
   description = "The ARN of the IAM role created by this example for S3 replication."
-  value       = aws_iam_role.replication.arn
+  # value       = aws_iam_role.replication.arn
+  value = join("", [for k, v in aws_iam_role.replication : v.arn])
 }
 
 output "replication_iam_role_name" {
   description = "The name of the IAM role created by this example for S3 replication."
-  value       = aws_iam_role.replication.name
+  # value       = aws_iam_role.replication.name
+  value = join("", [for k, v in aws_iam_role.replication : v.name])
 }
