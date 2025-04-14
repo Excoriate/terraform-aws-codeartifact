@@ -2,36 +2,49 @@
 # Example Data Sources 📊
 ###################################
 
-data "aws_caller_identity" "current" {}
-data "aws_partition" "current" {}
+data "aws_caller_identity" "current" {
+  provider = aws.source
+}
 
 ###################################
-# Replica Bucket Resources 🪣 (Created in Replica Region)
+# Foundation Module Call (Replica Bucket) 🚀 (Using Replica Region Provider)
 # ----------------------------------------------------
-# These resources are created directly by the example
-# to provide the destination for replication.
+# Create the replica bucket using the foundation module itself,
+# but without enabling replication *on* the replica.
 ###################################
+module "replica_foundation" {
+  source = "../../../modules/foundation"
 
-resource "aws_s3_bucket" "replica" {
-  provider = aws.replica # Use the replica provider
+  providers = {
+    aws = aws.replica # Explicitly use the replica provider
+  }
 
-  # Ensure unique bucket name, potentially incorporating region or account ID
-  bucket = "${var.replica_bucket_name}-${data.aws_caller_identity.current.account_id}-${var.replica_region}"
+  # --- Feature Flags ---
+  is_enabled                = var.is_enabled # Use example's master flag
+  is_s3_bucket_enabled      = true           # Must be enabled to create the bucket
+  is_kms_key_enabled        = false          # Disable KMS for replica for simplicity
+  is_log_group_enabled      = false          # Disable Logs for replica for simplicity
+  is_oidc_provider_enabled  = false          # Disable OIDC for replica
+  is_s3_replication_enabled = false          # IMPORTANT: Replication is NOT enabled on the replica itself
 
+  # --- S3 Bucket Configuration ---
+  # Use a unique name for the replica bucket
+  s3_bucket_name = "${var.replica_bucket_name}-${data.aws_caller_identity.current.account_id}-${var.replica_region}"
+
+  # --- Other Foundation Inputs (using example vars/defaults or specific replica values) ---
+  # Provide dummy values for required inputs of disabled features if necessary,
+  # though module defaults should handle nulls when features are disabled.
+  kms_key_alias            = "alias/replica-${var.kms_key_alias}"      # Needs unique alias if enabled
+  log_group_name           = "${var.log_group_name}-replica"           # Needs unique name if enabled
+  codeartifact_domain_name = "${var.codeartifact_domain_name}-replica" # Naming consistency
+
+  # Common Tags
   tags = merge(
     var.tags,
-    { Name = var.replica_bucket_name }
+    { Name = "${var.replica_bucket_name}-${data.aws_caller_identity.current.account_id}-${var.replica_region}" }
   )
 }
 
-resource "aws_s3_bucket_versioning" "replica" {
-  provider = aws.replica # Use the replica provider
-
-  bucket = aws_s3_bucket.replica.id
-  versioning_configuration {
-    status = "Enabled" # Replication requires versioning on destination
-  }
-}
 
 ###################################
 # IAM Role & Policy for Replication 📜 (Created in Source Region)
@@ -41,6 +54,8 @@ resource "aws_s3_bucket_versioning" "replica" {
 ###################################
 
 data "aws_iam_policy_document" "assume_role" {
+  provider = aws.source
+
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -52,7 +67,7 @@ data "aws_iam_policy_document" "assume_role" {
     # condition {
     #   test     = "ArnLike"
     #   variable = "aws:SourceArn"
-    #   values   = ["arn:${data.aws_partition.current.partition}:s3:::${var.source_bucket_name}"]
+    #   values   = [module.this.s3_bucket_arn] # Reference source bucket ARN from module output
     # }
     # condition {
     #   test     = "StringEquals"
@@ -74,6 +89,8 @@ resource "aws_iam_role" "replication" {
 }
 
 data "aws_iam_policy_document" "replication" {
+  provider = aws.source
+
   # Policy based on AWS documentation for S3 replication
   # Source Bucket Permissions
   statement {
@@ -82,9 +99,8 @@ data "aws_iam_policy_document" "replication" {
       "s3:GetReplicationConfiguration",
       "s3:ListBucket"
     ]
-    # Use module output for source bucket ARN once available
-    # For now, construct it, assuming module call succeeds
-    resources = ["arn:${data.aws_partition.current.partition}:s3:::${var.source_bucket_name}"]
+    # Reference source bucket ARN from module output
+    resources = [module.this.s3_bucket_arn]
   }
   statement {
     effect = "Allow"
@@ -93,7 +109,7 @@ data "aws_iam_policy_document" "replication" {
       "s3:GetObjectVersionAcl",
       "s3:GetObjectVersionTagging"
     ]
-    resources = ["arn:${data.aws_partition.current.partition}:s3:::${var.source_bucket_name}/*"]
+    resources = ["${module.this.s3_bucket_arn}/*"]
   }
 
   # Destination Bucket Permissions
@@ -104,17 +120,18 @@ data "aws_iam_policy_document" "replication" {
       "s3:ReplicateDelete",
       "s3:ReplicateTags"
     ]
-    resources = ["${aws_s3_bucket.replica.arn}/*"]
+    # Reference replica bucket ARN from replica module output
+    resources = ["${module.replica_foundation.s3_bucket_arn}/*"]
   }
 
-  # KMS Permissions (if destination bucket uses KMS)
+  # KMS Permissions (if destination bucket uses KMS - requires enabling KMS in replica_foundation)
   # statement {
   #   effect = "Allow"
   #   actions = [
   #     "kms:Encrypt"
   #   ]
   #   # Add ARN of the KMS key used by the destination bucket
-  #   resources = ["arn:aws:kms:${var.replica_region}:${data.aws_caller_identity.current.account_id}:key/your-replica-kms-key-id"]
+  #   resources = [module.replica_foundation.kms_key_arn]
   # }
 }
 
@@ -138,7 +155,7 @@ resource "aws_iam_role_policy_attachment" "replication" {
 
 
 ###################################
-# Foundation Module Call 🚀 (Using Source Region Provider)
+# Foundation Module Call (Source Bucket) 🚀 (Using Source Region Provider)
 ###################################
 
 module "this" {
@@ -158,10 +175,11 @@ module "this" {
   s3_bucket_name = var.source_bucket_name # Use variable defined for this example
 
   # --- S3 Replication Configuration ---
-  is_s3_replication_enabled = var.is_replication_enabled # Controlled by fixture
+  is_s3_replication_enabled = true
   s3_replication_role_arn   = aws_iam_role.replication.arn
   s3_replication_destination = {
-    bucket_arn = aws_s3_bucket.replica.arn
+    # Reference replica bucket ARN from replica module output
+    bucket_arn = module.replica_foundation.s3_bucket_arn
     # storage_class = "STANDARD_IA" # Optional: specify replica storage class
   }
 
@@ -175,4 +193,7 @@ module "this" {
 
   # Common Tags
   tags = var.tags
+
+  # Explicit dependency to ensure replica bucket exists before source replication is configured
+  depends_on = [module.replica_foundation]
 }

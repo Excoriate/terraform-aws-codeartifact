@@ -35,13 +35,6 @@ variable "replication_role_name" {
   default     = "foundation-adv-s3-replication-role"
 }
 
-variable "is_replication_enabled" {
-  type        = bool
-  description = "Flag to enable S3 replication feature in the foundation module call."
-  # Default to true for the primary fixture of this example
-  default = true
-}
-
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources created by the foundation module."

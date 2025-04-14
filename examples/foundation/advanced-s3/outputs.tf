@@ -98,13 +98,13 @@ output "oidc_role_names" {
 ###################################
 
 output "replica_s3_bucket_id" {
-  description = "The name (ID) of the replica S3 bucket created by this example."
-  value       = aws_s3_bucket.replica.id
+  description = "The name (ID) of the replica S3 bucket created via the foundation module."
+  value       = module.replica_foundation.s3_bucket_id
 }
 
 output "replica_s3_bucket_arn" {
-  description = "The ARN of the replica S3 bucket created by this example."
-  value       = aws_s3_bucket.replica.arn
+  description = "The ARN of the replica S3 bucket created via the foundation module."
+  value       = module.replica_foundation.s3_bucket_arn
 }
 
 output "replication_iam_role_arn" {
