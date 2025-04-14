@@ -21,6 +21,7 @@ output "repository_domain_owner" {
 output "policy_revision" {
   description = "The revision of the repository permissions policy. Only set if a policy is created."
   value       = local.create_policy ? aws_codeartifact_repository_permissions_policy.this[0].policy_revision : null
+  sensitive   = true
 }
 
 output "is_enabled" {
