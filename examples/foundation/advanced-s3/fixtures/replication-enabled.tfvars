@@ -2,9 +2,9 @@
 # Provides necessary configuration for cross-region replication setup.
 
 # --- Feature Flags ---
-is_enabled              = true
-is_s3_bucket_enabled    = true  # Must be true for replication
-is_replication_enabled = true  # Enable the replication feature
+is_enabled             = true
+is_s3_bucket_enabled   = true # Must be true for replication
+is_replication_enabled = true # Enable the replication feature
 
 # --- Region Configuration ---
 source_region  = "us-east-1"
