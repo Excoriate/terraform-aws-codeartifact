@@ -1,0 +1,24 @@
+# Basic Example: Repository Permissions Module
+
+## Overview
+> **Note:** This example demonstrates basic usage of the `repository-permissions` module. It creates a CodeArtifact domain directly, then uses the `repository` module to create a repository, and finally uses the `repository-permissions` module (`module "this"`) to apply a simple read policy to that repository for the current AWS caller identity.
+
+### 🔑 Key Features Demonstrated
+- Creating prerequisite resources (domain, repository) needed by the target module.
+- Calling the `repository-permissions` module (`module "this"`).
+- Applying a baseline read policy using `read_principals` (dynamically set to the caller identity if `var.policy_principals` is empty).
+- Using fixtures (`fixtures/*.tfvars`) to test enabled/disabled states.
+
+### 📋 Usage Guidelines
+1.  **Configure:** Use the `fixtures/default.tfvars` file. You can optionally provide specific principal ARNs via the `policy_principals` variable if you don't want to use the default caller identity.
+    ```tfvars
+    # fixtures/default.tfvars (Example - usually empty to use defaults)
+    # policy_principals = ["arn:aws:iam::111122223333:role/MyReaderRole"]
+    ```
+2.  **Initialize:** Run `terraform init`.
+3.  **Plan:** Run `terraform plan -var-file=fixtures/default.tfvars`.
+4.  **Apply:** Run `terraform apply -var-file=fixtures/default.tfvars`.
+5.  **Makefile:** Alternatively, use the provided `Makefile` targets (`make plan-default`, `make apply-default`).
+
+<!-- BEGIN_TF_DOCS -->
+<!-- END_TF_DOCS -->
