@@ -1,0 +1,79 @@
+---
+formatter: markdown table
+
+sections:
+  hide:
+    # Do not show resources directly created by the example itself (e.g., replica bucket, role)
+    # Focus on the module's interface and what the example configures/outputs.
+    - resources
+  show:
+    - header
+    - inputs
+    - outputs
+    # Show modules called by this example (which is just the foundation module)
+    - modules
+
+content: |-
+  # Advanced S3 Example: AWS CodeArtifact Foundation Module
+
+  ## Overview
+  > **Note:** This example demonstrates using the S3 replication feature within the `foundation` module found in `modules/foundation`. It uses **two instances** of the foundation module: one to create the source bucket (with replication enabled) in one region, and another to create the replica bucket (with replication disabled) in a different region. It also creates the necessary IAM role for replication.
+
+  ### 🔑 Key Features Demonstrated
+  - Instantiating the `foundation` module twice with different provider aliases (`aws.source`, `aws.replica`).
+  - Enabling `is_s3_replication_enabled = true` for the source module instance.
+  - Setting `is_s3_replication_enabled = false` for the replica module instance.
+  - Passing the replica bucket ARN (output from the replica module instance) to the source module instance via `s3_replication_destination`.
+  - Creating the required IAM Role and Policy for S3 replication within the example configuration.
+  - Using fixtures (`fixtures/*.tfvars`) to test replication enabled/disabled scenarios.
+
+  ### 📋 Usage Guidelines
+  1.  **Configure:** Use the `fixtures/replication-enabled.tfvars` file as a template. Customize the `source_region`, `replica_region`, `source_bucket_name`, `replica_bucket_name`, and `replication_role_name`. Ensure the specified regions exist and your AWS credentials have permissions in both.
+      ```tfvars
+      # fixtures/replication-enabled.tfvars (Example Structure)
+      source_region           = "us-east-1"
+      replica_region          = "eu-west-1"
+      source_bucket_name      = "my-foundation-source-bucket-unique"
+      replica_bucket_name     = "my-foundation-replica-bucket-unique"
+      replication_role_name   = "MyS3ReplicationRole"
+      is_replication_enabled  = true # For the source module instance
+      # other vars...
+      ```
+  2.  **Initialize:** Run `terraform init`.
+  3.  **Plan:** Run `terraform plan -var-file=fixtures/replication-enabled.tfvars`. Review the plan to ensure resources are created in the correct regions via both module instances.
+  4.  **Apply:** Run `terraform apply -var-file=fixtures/replication-enabled.tfvars`.
+  5.  **Makefile:** Alternatively, use the provided `Makefile` targets (e.g., `make plan-replication-enabled`, `make apply-replication-enabled`).
+
+  {{ .Header }}
+
+  ## Example Inputs
+
+  {{ .Inputs }}
+
+  ## Example Outputs
+
+  {{ .Outputs }}
+
+  ## Modules Called
+
+  {{ .Modules }}
+
+output:
+  file: README.md
+  mode: inject # Use inject to preserve the overview section
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true # Show the header section from the template
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true

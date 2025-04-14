@@ -22,6 +22,7 @@ output "feature_flags" {
     is_kms_key_enabled        = local.is_kms_key_enabled
     is_log_group_enabled      = local.is_log_group_enabled
     is_s3_bucket_enabled      = local.is_s3_bucket_enabled
+    is_s3_replication_enabled = local.is_s3_replication_enabled
     is_oidc_provider_enabled  = local.is_oidc_provider_enabled
     is_oidc_existing_provider = local.is_oidc_existing_provider
   }

@@ -10,12 +10,14 @@ locals {
   # 4. `is_s3_bucket_enabled` - Flag to control S3 bucket creation
   #
   ###################################
-  is_enabled                = var.is_enabled
-  is_kms_key_enabled        = local.is_enabled && var.is_kms_key_enabled
-  is_log_group_enabled      = local.is_enabled && var.is_log_group_enabled
-  is_s3_bucket_enabled      = local.is_enabled && var.is_s3_bucket_enabled
-  is_oidc_provider_enabled  = local.is_enabled && var.is_oidc_provider_enabled
-  is_oidc_existing_provider = local.is_oidc_provider_enabled && var.oidc_use_existing_provider
+  is_enabled                           = var.is_enabled
+  is_kms_key_enabled                   = local.is_enabled && var.is_kms_key_enabled
+  is_log_group_enabled                 = local.is_enabled && var.is_log_group_enabled
+  is_s3_bucket_enabled                 = local.is_enabled && var.is_s3_bucket_enabled
+  is_s3_replication_enabled            = local.is_enabled && var.is_s3_replication_enabled
+  is_oidc_provider_enabled             = local.is_enabled && var.is_oidc_provider_enabled
+  is_oidc_existing_provider            = local.is_oidc_provider_enabled && var.oidc_use_existing_provider
+  is_replication_configuration_enabled = local.is_s3_bucket_enabled && var.is_s3_replication_enabled # Added for S3 replication
 
   ###################################
   # Resource Naming 🏷️

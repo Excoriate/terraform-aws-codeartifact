@@ -42,3 +42,8 @@ output "is_enabled" {
   description = "Whether the domain module is enabled or not."
   value       = local.is_enabled
 }
+
+output "domain_s3_bucket_arn" {
+  description = "The ARN of the S3 bucket used for domain assets."
+  value       = local.create_domain ? aws_codeartifact_domain.this[0].s3_bucket_arn : null
+}

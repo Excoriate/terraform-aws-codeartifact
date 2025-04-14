@@ -200,25 +200,28 @@ tf-format-all:
     @echo "📂 Scanning directories: modules/, examples/, tests/"
 
     @echo "\n🔍 Formatting files in modules/"
-    @cd modules && find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
+    @pushd modules > /dev/null && \
+    find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
         echo "   📄 Processing: $file"; \
-    done
-    @cd modules && terraform fmt -recursive
-    @cd - > /dev/null
+    done && \
+    terraform fmt -recursive && \
+    popd > /dev/null
 
     @echo "\n🔍 Formatting files in examples/"
-    @cd examples && find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
+    @pushd examples > /dev/null && \
+    find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
         echo "   📄 Processing: $file"; \
-    done
-    @cd examples && terraform fmt -recursive
-    @cd - > /dev/null
+    done && \
+    terraform fmt -recursive && \
+    popd > /dev/null
 
     @echo "\n🔍 Formatting files in tests/"
-    @cd tests && find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
+    @pushd tests > /dev/null && \
+    find . -type f \( -name "*.tf" -o -name "*.tfvars" \) | sort | while read -r file; do \
         echo "   📄 Processing: $file"; \
-    done
-    @cd tests && terraform fmt -recursive
-    @cd - > /dev/null
+    done && \
+    terraform fmt -recursive && \
+    popd > /dev/null
 
     @echo "\n✅ All Terraform files have been formatted!"
 
