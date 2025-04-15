@@ -7,7 +7,7 @@ data "aws_region" "current" {}
 // Construct the combined policy document from baseline principals and custom statements
 data "aws_iam_policy_document" "combined" {
   # Only generate the combined document if the module is enabled AND no override is provided.
-  count = var.policy_document_override == null && var.is_enabled ? 1 : 0
+  count = local.is_built_in_policy_enabled ? 1 : 0
 
   # Default statement: Ensure the policy is never empty and owner can always read the policy.
   # This helps prevent "ValidationException: Policy document isn't a valid policy document"
@@ -17,7 +17,10 @@ data "aws_iam_policy_document" "combined" {
     effect = "Allow"
     actions = [
       "codeartifact:GetDomainPermissionsPolicy",
-      "codeartifact:ListRepositoriesInDomain" # Add a functional permission
+      "codeartifact:ListRepositoriesInDomain",
+      "codeartifact:GetAuthorizationToken",
+      "codeartifact:DescribeDomain",
+      "codeartifact:CreateRepository"
     ]
     principals {
       type        = "AWS"
@@ -34,13 +37,14 @@ data "aws_iam_policy_document" "combined" {
       sid    = "BaselineReadDomainPolicy"
       effect = "Allow"
       actions = [
-        "codeartifact:GetDomainPermissionsPolicy"
+        "codeartifact:GetDomainPermissionsPolicy",
+        "codeartifact:DescribeDomain"
       ]
       principals {
         type        = "AWS"
         identifiers = var.read_principals
       }
-      resources = [local.domain_arn] // Action applies to the domain ARN
+      resources = ["*"]
     }
   }
 
@@ -58,7 +62,7 @@ data "aws_iam_policy_document" "combined" {
         type        = "AWS"
         identifiers = var.list_repo_principals
       }
-      resources = [local.domain_arn] // Action applies to the domain ARN
+      resources = ["*"]
     }
   }
 
@@ -77,7 +81,7 @@ data "aws_iam_policy_document" "combined" {
         type        = "AWS"
         identifiers = var.authorization_token_principals
       }
-      resources = ["*"] // These actions require "*" resource in domain policy
+      resources = ["*"]
     }
   }
 

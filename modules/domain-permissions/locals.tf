@@ -1,6 +1,7 @@
 locals {
   # Flag to enable/disable the entire module
-  is_enabled = var.is_enabled
+  is_enabled                 = var.is_enabled
+  is_built_in_policy_enabled = var.is_enabled && var.policy_document_override == null
 
   # Determine effective owner (current account or specified)
   effective_domain_owner = coalesce(var.domain_owner, data.aws_caller_identity.current.account_id)
@@ -14,25 +15,13 @@ locals {
   read_principals_length       = try(length(var.read_principals), 0)
   list_repo_principals_length  = try(length(var.list_repo_principals), 0)
   auth_token_principals_length = try(length(var.authorization_token_principals), 0)
-  custom_statements_length     = try(length(var.custom_policy_statements), 0)
-
-  # Flag to determine if any baseline policy inputs are provided
-  has_baseline_inputs = (
-    local.read_principals_length > 0 ||
-    local.list_repo_principals_length > 0 ||
-    local.auth_token_principals_length > 0 ||
-    local.custom_statements_length > 0
-  )
 
   # Flag to determine if the policy resource should be created.
   # The policy will be created if the module is enabled (local.is_enabled is true)
   # and at least one of the following conditions is met:
   # 1. A policy document override is provided (var.policy_document_override is not null).
   # 2. We have baseline policy inputs
-  create_policy = local.is_enabled && (
-    var.policy_document_override != null ||
-    local.has_baseline_inputs
-  )
+  create_policy = local.is_enabled
 
   # Determine the final policy document content.
   # Use the override if provided, otherwise use the dynamically generated one (if it was created).
