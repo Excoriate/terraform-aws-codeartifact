@@ -69,10 +69,13 @@ variable "read_principals" {
   type        = list(string)
   default     = []
 
-  # validation {
-  #   condition     = alltrue([for principal in var.read_principals : can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"])
-  #   error_message = "Each item in read_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
-  # }
+  validation {
+    condition = alltrue([for principal in var.read_principals :
+      can(regex("^arn:aws:iam::[0-9]{12}:root$", principal)) ||
+      can(regex("^arn:aws:iam::[0-9]{12}:(user|role)/.+$", principal)) ||
+    principal == "*"])
+    error_message = "Each item in read_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
+  }
 }
 
 variable "list_repo_principals" {
@@ -86,12 +89,11 @@ variable "list_repo_principals" {
   default     = []
 
   validation {
-    # Use ternary operator to avoid iteration when null
-    condition = var.list_repo_principals == null ? true : alltrue([
-      for principal in var.list_repo_principals :
-      can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
-    ])
-    error_message = "Each item in list_repo_principals must be null or a valid IAM principal ARN (account root, user, or role) or '*'."
+    condition = alltrue([for principal in var.list_repo_principals :
+      can(regex("^arn:aws:iam::[0-9]{12}:root$", principal)) ||
+      can(regex("^arn:aws:iam::[0-9]{12}:(user|role)/.+$", principal)) ||
+    principal == "*"])
+    error_message = "Each item in list_repo_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
   }
 }
 
@@ -106,12 +108,11 @@ variable "authorization_token_principals" {
   default     = []
 
   validation {
-    # Use ternary operator to avoid iteration when null
-    condition = var.authorization_token_principals == null ? true : alltrue([
-      for principal in var.authorization_token_principals :
-      can(regex("^arn:aws:iam::[0-9]{12}:(root|user/|role/).+$", principal)) || principal == "*"
-    ])
-    error_message = "Each item in authorization_token_principals must be null or a valid IAM principal ARN (account root, user, or role) or '*'."
+    condition = alltrue([for principal in var.authorization_token_principals :
+      can(regex("^arn:aws:iam::[0-9]{12}:root$", principal)) ||
+      can(regex("^arn:aws:iam::[0-9]{12}:(user|role)/.+$", principal)) ||
+    principal == "*"])
+    error_message = "Each item in authorization_token_principals must be a valid IAM principal ARN (account root, user, or role) or '*'."
   }
 }
 

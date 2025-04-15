@@ -62,44 +62,6 @@ module "codeartifact_domain_permissions" {
 }
 ```
 
-## Test Scenarios and Fixtures
-
-The module includes comprehensive test scenarios to validate different configuration options:
-
-### Fixture Types
-
-1. **`default.tfvars`**
-   - Enables the module with default configuration
-   - Creates a domain with minimal baseline policy
-   - Automatically adds the current account's root as a read principal
-
-2. **`disabled.tfvars`**
-   - Disables the module completely
-   - Prevents creation of any domain permissions policy
-   - Useful for testing conditional module creation
-
-3. **`no-policy.tfvars`**
-   - Enables the module but does not apply any policy
-   - Demonstrates the module's behavior when no explicit policy inputs are provided
-   - Verifies the default behavior of not creating a policy resource
-
-4. **`cross_account.tfvars`**
-   - Demonstrates cross-account domain permissions configuration
-   - Allows setting custom policy statements for cross-account access
-   - Useful for multi-account AWS architectures
-
-5. **`custom-domain-owner.tfvars`**
-   - Shows how to specify a custom domain owner different from the current account
-   - Useful for managing domains across different AWS accounts
-
-### Test Coverage
-
-The module's test suite (`all_recipes_ro_test.go`) validates:
-- Correct resource creation based on fixture configuration
-- Policy resource presence/absence
-- Default policy statement generation
-- Handling of different module configuration scenarios
-
 ## Security Considerations
 
 - 🔒 Follow least privilege principle in domain policies
@@ -113,6 +75,8 @@ The module's test suite (`all_recipes_ro_test.go`) validates:
 - Explicitly list resources when possible
 - Consider separating read and write permissions
 - Use conditions to further restrict access based on tags, IP addresses, etc.
+
+
 
 ## Variables
 
@@ -138,6 +102,7 @@ The module's test suite (`all_recipes_ro_test.go`) validates:
 |------|-------------|
 | <a name="output_domain_name"></a> [domain\_name](#output\_domain\_name) | The name of the CodeArtifact domain the policy applies to. |
 | <a name="output_domain_owner"></a> [domain\_owner](#output\_domain\_owner) | The AWS account ID that owns the CodeArtifact domain used by the policy. |
+| <a name="output_feature_flags"></a> [feature\_flags](#output\_feature\_flags) | The feature flags for the domain permissions policy. |
 | <a name="output_is_enabled"></a> [is\_enabled](#output\_is\_enabled) | Indicates whether the domain permissions policy resource was enabled and potentially created. |
 | <a name="output_policy_document"></a> [policy\_document](#output\_policy\_document) | The final JSON policy document applied to the domain (either override or generated). |
 | <a name="output_policy_revision"></a> [policy\_revision](#output\_policy\_revision) | The current revision of the domain permissions policy. |

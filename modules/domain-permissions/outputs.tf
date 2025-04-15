@@ -3,6 +3,14 @@ output "policy_revision" {
   value       = local.create_policy ? aws_codeartifact_domain_permissions_policy.this[0].policy_revision : null
 }
 
+output "feature_flags" {
+  description = "The feature flags for the domain permissions policy."
+  value = {
+    is_enabled                 = local.is_enabled
+    is_built_in_policy_enabled = local.is_built_in_policy_enabled
+  }
+}
+
 output "resource_arn" {
   description = "The ARN of the domain permissions policy resource."
   value       = local.create_policy ? aws_codeartifact_domain_permissions_policy.this[0].resource_arn : null
