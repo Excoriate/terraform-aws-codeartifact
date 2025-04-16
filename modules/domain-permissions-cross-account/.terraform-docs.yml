@@ -1,0 +1,138 @@
+---
+formatter: markdown table
+
+sections:
+  hide: []
+  show:
+    - inputs
+    - outputs
+    - resources
+
+content: |-
+  # AWS IAM Role for Cross-Account CodeArtifact Access Module
+
+  ## Overview
+
+  This Terraform module creates an IAM role in the **current** (domain owner) AWS account designed to be assumed by IAM roles from **other** specified AWS accounts. It attaches IAM policies (defined by the user) to this role, granting the assumed role specific permissions, typically for accessing resources like an AWS CodeArtifact domain.
+
+  ### 🔑 Key Features
+  - **IAM Role Creation**: Provisions an `aws_iam_role` with a configurable name, path, description, and session duration.
+  - **Cross-Account Trust Policy**: Automatically generates the assume role policy (trust policy) based on the list of external principals (`var.external_principals`) provided, allowing only specified roles from specified external accounts to assume this role.
+  - **Managed Policy Attachment**: Creates `aws_iam_policy` resources based on the JSON policy documents provided in the `var.policies` list and attaches them to the role using `aws_iam_role_policy_attachment`.
+  - **Exclusivity Control**: Optionally ensures that only the policies defined via `var.policies` are attached (`var.exclusive_policy_attachment`).
+  - **Conditional Creation**: Creates resources only if `var.is_enabled` is true.
+  - **Tagging**: Applies consistent tags to created resources.
+
+  ### 📋 Usage Guidelines
+  1.  Define the IAM role details (`name`, `path`, `description`, `max_session_duration`).
+  2.  Specify the external principals (account IDs and role names) allowed to assume this role via `var.external_principals`.
+  3.  Define the permissions the cross-account role should have by providing a list of policy objects in `var.policies`. Each object needs a `name` and a `policy` (JSON string). The policy JSON should grant necessary actions (e.g., `codeartifact:GetAuthorizationToken`, `codeartifact:ReadFromRepository`) on the target resources (e.g., the CodeArtifact domain ARN).
+  4.  Set `var.is_enabled` to `true` (default).
+  5.  Apply standard tags via `var.tags`.
+
+  **Example:**
+  ```hcl
+  module "codeartifact_cross_account_role" {
+    source = "path/to/modules/domain-permissions-cross-account"
+
+    is_enabled = true
+    name       = "MyCodeArtifactCrossAccountReaderRole"
+    path       = "/service-roles/"
+
+    external_principals = [
+      { account_id = "111122223333", role_name = "CICDDeployRole" },
+      { account_id = "444455556666", role_name = "DeveloperReadOnlyRole" }
+    ]
+
+    policies = [
+      {
+        name   = "CodeArtifactDomainReadAccess"
+        policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [
+            {
+              Effect = "Allow",
+              Action = [
+                "codeartifact:GetAuthorizationToken",
+                "codeartifact:DescribeDomain",
+                "codeartifact:ListRepositoriesInDomain"
+              ],
+              Resource = "arn:aws:codeartifact:us-east-1:123456789012:domain/my-central-domain" # Replace with actual domain ARN
+            }
+          ]
+        })
+      },
+      {
+        name   = "CodeArtifactRepoReadAccess"
+        policy = jsonencode({
+          Version = "2012-10-17"
+          Statement = [
+            {
+              Effect = "Allow",
+              Action = [
+                "codeartifact:ReadFromRepository",
+                "codeartifact:ListPackages",
+                "codeartifact:DescribePackageVersion",
+                "codeartifact:GetPackageVersionReadme",
+                "codeartifact:GetPackageVersionAssets",
+                "codeartifact:ListPackageVersions",
+                "codeartifact:ListPackageVersionAssets"
+              ],
+              # Grant access to all repositories in the domain
+              Resource = "arn:aws:codeartifact:us-east-1:123456789012:repository/my-central-domain/*" # Replace with actual domain ARN/name pattern
+            }
+          ]
+        })
+      }
+    ]
+
+    tags = {
+      Environment = "shared"
+      Service     = "CodeArtifact"
+    }
+  }
+  ```
+
+  ## Security Considerations
+
+  - 🔒 Follow the principle of least privilege when defining the policy documents in `var.policies`. Grant only the necessary actions on specific resources.
+  - 👥 Be specific in `var.external_principals`. Avoid granting trust too broadly.
+  - 📝 Regularly audit the trust policy and attached permissions.
+
+  {{ .Header }}
+
+  ## Variables
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+output:
+  file: README.md
+  mode: replace
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: true
+  color: true
+  description: true
+  escape: true
+  header: true
+  html: true
+  indent: 2
+  required: true
+  sensitive: true
+  type: true
