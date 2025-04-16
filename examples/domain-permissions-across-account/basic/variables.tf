@@ -13,7 +13,7 @@ variable "aws_region" {
 variable "domain_name" {
   description = "Name for the CodeArtifact domain created directly in this example."
   type        = string
-  default     = "dpca-basic-domain-example" # dpca = domain-permissions-cross-account
+  default     = "dpca-basic-domain-example"
 }
 
 variable "role_name" {
@@ -22,8 +22,20 @@ variable "role_name" {
   default     = "dpca-basic-role-example"
 }
 
+variable "role_description" {
+  description = "Description for the IAM role."
+  type        = string
+  default     = "IAM role for cross-account CodeArtifact domain access"
+}
+
+variable "role_path" {
+  description = "Path for the IAM role."
+  type        = string
+  default     = "/"
+}
+
 variable "external_principals" {
-  description = "List of external AWS principals allowed to assume the cross-account IAM role."
+  description = "List of external AWS principals (object form) allowed to assume the cross-account IAM role."
   type = list(object({
     account_id = string
     role_name  = string
@@ -40,14 +52,10 @@ variable "external_principals" {
   ]
 }
 
-variable "allowed_actions" {
-  description = "List of allowed actions for the cross-account role."
+variable "external_principals_arns_override" {
+  description = "List of full ARNs of external AWS principals (roles) allowed to assume the cross-account IAM role. Takes precedence if set."
   type        = list(string)
-  default = [
-    "codeartifact:GetAuthorizationToken",
-    "codeartifact:DescribeDomain",
-    "codeartifact:ListRepositoriesInDomain"
-  ]
+  default     = []
 }
 
 variable "tags" {

@@ -6,12 +6,12 @@
 resource "aws_iam_role" "cross_account_role" {
   for_each = var.is_enabled ? toset(["enabled"]) : toset([])
 
-  name                  = var.name
-  path                  = var.path
-  assume_role_policy    = data.aws_iam_policy_document.trust_policy["enabled"].json
+  name                  = var.role_name
+  path                  = var.role_path
+  assume_role_policy    = var.is_enabled && length(var.external_principals_arns_override) > 0 ? data.aws_iam_policy_document.trust_policy_override["enabled"].json : data.aws_iam_policy_document.trust_policy["enabled"].json
   max_session_duration  = var.max_session_duration
   force_detach_policies = var.force_detach_policies
-  description           = var.description
+  description           = var.role_description
   tags                  = local.tags # Assumes locals.tf defines 'tags' correctly merging var.tags
 }
 
@@ -22,8 +22,8 @@ resource "aws_iam_role" "cross_account_role" {
 ###################################
 resource "aws_iam_policy" "policies" {
   # Create one policy for each item in var.policies, only if module is enabled
-  for_each = var.is_enabled && length(var.policies) > 0 ? {
-    for idx, policy in var.policies : policy.name => policy
+  for_each = var.is_enabled && length(var.iam_role_cross_account_policies) > 0 ? {
+    for idx, policy in var.iam_role_cross_account_policies : policy.name => policy
   } : {}
 
   name        = each.value.name
@@ -54,9 +54,9 @@ resource "aws_iam_policy" "policies" {
 
 # Attachment resource (used for both exclusive and additive based on count logic)
 resource "aws_iam_role_policy_attachment" "attachment" {
-  # Create one attachment per policy defined in var.policies, only if module is enabled
-  for_each = var.is_enabled && length(var.policies) > 0 ? {
-    for idx, policy in var.policies : policy.name => policy
+  # Create one attachment per policy defined in var.iam_role_cross_account_policies, only if module is enabled
+  for_each = var.is_enabled && length(var.iam_role_cross_account_policies) > 0 ? {
+    for idx, policy in var.iam_role_cross_account_policies : policy.name => policy
   } : {}
 
   role       = aws_iam_role.cross_account_role["enabled"].name

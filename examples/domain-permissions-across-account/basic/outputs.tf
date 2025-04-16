@@ -42,3 +42,8 @@ output "module_enabled" {
   description = "Indicates whether the module created resources."
   value       = module.this.module_enabled
 }
+
+output "feature_flags" {
+  description = "Feature flags from the module for introspection."
+  value       = module.this.feature_flags
+}

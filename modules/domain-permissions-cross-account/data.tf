@@ -8,7 +8,7 @@ data "aws_partition" "current" {}
 ###################################
 data "aws_iam_policy_document" "trust_policy" {
   # Only generate if module is enabled, otherwise resources referencing this will fail
-  for_each = var.is_enabled ? toset(["enabled"]) : toset([])
+  for_each = var.is_enabled && length(var.external_principals) > 0 && length(var.external_principals_arns_override) == 0 ? toset(["enabled"]) : toset([])
 
   statement {
     effect  = "Allow"
@@ -19,10 +19,27 @@ data "aws_iam_policy_document" "trust_policy" {
       # Format principals correctly as a list of ARNs
       identifiers = [
         for principal in var.external_principals :
-        "arn:${data.aws_partition.current.partition}:iam::${principal.account_id}:role/${principal.role_name}"
+        principal.full_arn_override != "" ? principal.full_arn_override : "arn:${data.aws_partition.current.partition}:iam::${principal.account_id}:role/${principal.role_name}"
       ]
     }
   }
 }
 
-# Removed data.aws_iam_policy_document.permissions as permissions are now defined via var.policies
+# Trust Policy for Cross-Account Role with Override
+# -------------------------------------------------
+# This policy allows external principals defined in var.external_principals_arns_override
+# to assume the IAM role created by this module.
+###################################
+data "aws_iam_policy_document" "trust_policy_override" {
+  for_each = var.is_enabled && length(var.external_principals_arns_override) > 0 ? toset(["enabled"]) : toset([])
+
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "AWS"
+      identifiers = var.external_principals_arns_override
+    }
+  }
+}
