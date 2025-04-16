@@ -6,26 +6,55 @@
 # allowed_actions = ["codeartifact:GetAuthorizationToken"]
 
 # Default fixture for the basic example
-# This file demonstrates how to override default values in variables.tf
+# Demonstrates object-based trust policy (default)
 
-# These values match the defaults in variables.tf, but are shown here as examples
-# of how to override them if needed
+is_enabled = true
 
-# role_name = "dpca-basic-role-example"
+domain_name      = "dpca-basic-domain-example"
+role_name        = "dpca-basic-role-example"
+role_description = "IAM role for cross-account CodeArtifact domain access"
+role_path        = "/"
 
-# external_principals = [
-#   {
-#     account_id = "111122223333"
-#     role_name  = "dpca-basic-role-example"
-#   },
-#   {
-#     account_id = "444455556666"
-#     role_name  = "dpca-basic-role-example"
-#   }
+external_principals = [
+  {
+    account_id = "111122223333"
+    role_name  = "dpca-basic-role-example"
+  },
+  {
+    account_id = "444455556666"
+    role_name  = "dpca-basic-role-example"
+  }
+]
+
+# Uncomment below to use ARN-based trust policy override instead
+# external_principals_arns_override = [
+#   "arn:aws:iam::111122223333:role/dpca-basic-role-example",
+#   "arn:aws:iam::444455556666:role/dpca-basic-role-example"
 # ]
 
-# allowed_actions = [
-#   "codeartifact:GetAuthorizationToken",
-#   "codeartifact:DescribeDomain",
-#   "codeartifact:ListRepositoriesInDomain"
-# ]
+# Policy attachment
+iam_role_cross_account_policies = [
+  {
+    name = "CodeArtifactDomainAccess"
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Action = [
+            "codeartifact:GetAuthorizationToken",
+            "codeartifact:DescribeDomain",
+            "codeartifact:ListRepositoriesInDomain"
+          ]
+          Resource = "*"
+        }
+      ]
+    })
+  }
+]
+
+tags = {
+  Environment = "example"
+  Project     = "domain-permissions-cross-account-basic"
+  ManagedBy   = "terraform"
+}

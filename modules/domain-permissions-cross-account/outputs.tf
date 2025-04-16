@@ -24,7 +24,7 @@ output "cross_account_role_unique_id" {
 
 output "policy_arns" {
   description = "List of ARNs of the IAM policies created for cross-account access."
-  value       = var.is_enabled && length(var.policies) > 0 ? [for policy in aws_iam_policy.policies : policy.arn] : []
+  value       = var.is_enabled && local.is_iam_role_cross_account_policies_enabled ? [for policy in aws_iam_policy.policies : policy.arn] : []
 }
 
 output "module_enabled" {
@@ -35,7 +35,9 @@ output "module_enabled" {
 output "feature_flags" {
   description = "A map of feature flags used in the module."
   value = {
-    is_enabled          = local.is_enabled
-    is_policies_enabled = local.is_policies_enabled
+    is_enabled                              = local.is_enabled
+    are_iam_role_cross_account_policies_set = local.is_iam_role_cross_account_policies_enabled
+    are_external_principals_set             = local.is_external_principals_enabled
+    are_external_principals_override_set    = local.is_external_principals_override_enabled
   }
 }

@@ -10,7 +10,7 @@ variable "is_enabled" {
   default     = true
 }
 
-variable "name" {
+variable "role_name" {
   type        = string
   description = <<-DESC
     The name for the IAM role to be created in the domain owner's account. This role will be assumed by external AWS principals.
@@ -28,23 +28,37 @@ variable "name" {
   # No default - this is mandatory.
 }
 
-variable "description" {
+variable "role_description" {
   type        = string
   description = "Description of the IAM role."
   default     = "IAM role for cross-account CodeArtifact domain access"
 }
 
-variable "path" {
+variable "role_path" {
   type        = string
   description = "Path for the IAM role. Defaults to '/'."
   default     = "/"
+}
+
+variable "external_principals_arns_override" {
+  type        = list(string)
+  description = <<-DESC
+    List of full ARNs of external AWS principals (roles) allowed to assume the cross-account IAM role.
+    If this is set, it'll take precedence over the `external_principals` variable.
+
+    **Example:**
+    external_principals_arns_override = [
+      "arn:aws:iam::112487888422:role/dev-tools-prod-ro",
+      "arn:aws:iam::112487888422:role/dev-tools-dev-pu",
+    ]
+  DESC
+  default     = []
 }
 
 variable "external_principals" {
   type = list(object({
     account_id = string
     role_name  = string
-    # Retaining flexibility for multiple principals, deviating slightly from reference's single assumer vars
   }))
   description = <<-DESC
     List of external AWS principals (roles) allowed to assume the cross-account IAM role. Each object must specify:
@@ -53,26 +67,16 @@ variable "external_principals" {
 
     **Example:**
     external_principals = [
-      { account_id = "262487118475", role_name = "builder-tools-prod-ro" },
-      { account_id = "190058439852", role_name = "builder-tools-dev-pu" }
+      { account_id = "122345678901", role_name = "test-tools-prod-ro" },
+      { account_id = "122345678901", role_name = "test-tools-dev-pu" },
     ]
 
     **References:**
     - [AWS IAM Role Trust Relationships](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_manage_modify.html#roles-modify_trust-policy)
   DESC
-  validation {
-    condition     = length(var.external_principals) > 0
-    error_message = "You must specify at least one external principal."
-  }
-  validation {
-    condition = alltrue([
-      for p in var.external_principals : can(regex("^[0-9]{12}$", p.account_id)) && can(regex("^[\\w+=,.@-]+$", p.role_name))
-    ])
-    error_message = "Each external principal must have a valid 12-digit 'account_id' and a valid 'role_name'."
-  }
 }
 
-variable "policies" {
+variable "iam_role_cross_account_policies" {
   type = list(object({
     name        = string
     path        = optional(string, "/")
@@ -87,7 +91,7 @@ variable "policies" {
     - `description`: (Optional) The description of the policy.
 
     **Example:**
-    policies = [
+    iam_role_cross_account_policies = [
       {
         name   = "CodeArtifactReadOnlyAccess"
         policy = jsonencode({ Version = "2012-10-17", Statement = [...] })
@@ -102,7 +106,7 @@ variable "policies" {
 
   validation {
     condition = alltrue([
-      for p in var.policies : can(jsondecode(p.policy))
+      for p in var.iam_role_cross_account_policies : can(jsondecode(p.policy))
     ])
     error_message = "The 'policy' attribute for each item in 'policies' must be a valid JSON string."
   }
