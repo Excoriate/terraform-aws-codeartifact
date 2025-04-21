@@ -115,8 +115,6 @@ locals {
     }
   )
 
-  # S3 bucket name configuration with domain name integration
-  bucket_name = var.bucket_name != null ? var.bucket_name : "codeartifact-${local.codeartifact_domain_name}-${data.aws_caller_identity.current.account_id}"
 
   # S3 bucket policy configuration
   default_bucket_policy_statement = {
@@ -125,11 +123,11 @@ locals {
     actions = ["s3:GetObject", "s3:ListBucket"]
     principals = {
       type        = "AWS"
-      identifiers = [data.aws_caller_identity.current.account_id]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"] # Fixed: ARN format
     }
     resources = [
-      "arn:aws:s3:::${local.bucket_name}",
-      "arn:aws:s3:::${local.bucket_name}/*"
+      "arn:aws:s3:::${var.s3_bucket_name}",
+      "arn:aws:s3:::${var.s3_bucket_name}/*"
     ]
   }
 
@@ -145,14 +143,16 @@ locals {
     Statement = [
       for statement in local.bucket_policy_statements : merge(
         {
-          Sid       = statement.sid
-          Effect    = statement.effect
-          Principal = statement.principals
-          Action    = statement.actions
-          Resource  = statement.resources
+          Sid    = statement.sid
+          Effect = statement.effect
+          Principal = {
+            # Format Principal correctly - always use list type for consistency
+            "${statement.principals.type}" = statement.principals.identifiers
+          }
+          Action   = statement.actions
+          Resource = statement.resources
         },
-        # Only include Condition if it exists in the statement
-        try({ Condition = statement.condition }, {})
+        try(statement.condition, null) != null ? { Condition = try(statement.condition, null) } : {}
       )
     ]
   })

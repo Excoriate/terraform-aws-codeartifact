@@ -23,13 +23,7 @@ resource "aws_kms_key" "this" {
   enable_key_rotation     = true
   policy                  = local.kms_key_policy
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name       = "codeartifact-${local.codeartifact_domain_name}-encryption-key"
-      DomainName = local.codeartifact_domain_name
-    }
-  )
+  tags = local.common_tags
 }
 
 resource "aws_kms_alias" "this" {
@@ -73,13 +67,13 @@ resource "aws_cloudwatch_log_group" "this" {
 resource "aws_s3_bucket" "this" {
   count = local.is_s3_bucket_enabled ? 1 : 0
 
-  bucket        = coalesce(var.s3_bucket_name, local.bucket_name)
+  bucket        = var.s3_bucket_name
   force_destroy = var.force_destroy_bucket
 
   tags = merge(
     local.common_tags,
     {
-      Name       = coalesce(var.s3_bucket_name, local.bucket_name)
+      Name       = var.s3_bucket_name
       DomainName = local.codeartifact_domain_name
     }
   )
