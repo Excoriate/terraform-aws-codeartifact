@@ -152,7 +152,7 @@ locals {
           Action   = statement.actions
           Resource = statement.resources
         },
-        statement.condition != null ? { Condition = statement.condition } : {}
+        try(statement.condition, null) != null ? { Condition = try(statement.condition, null) } : {}
       )
     ]
   })
