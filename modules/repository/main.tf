@@ -24,10 +24,10 @@ resource "aws_codeartifact_repository" "this" {
 
   dynamic "external_connections" {
     # Iterate over a list containing zero or one element, based on the string variable.
-    for_each = var.external_connection == null ? [] : [var.external_connection]
+    for_each = var.external_connection == null ? [] : var.external_connection
     content {
       # external_connections.value is now just each.value (the connection string itself)
-      external_connection_name = var.external_connection
+      external_connection_name = external_connections.value
     }
   }
 }
