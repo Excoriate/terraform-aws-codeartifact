@@ -68,7 +68,7 @@ variable "external_connection" {
 
   validation {
     # Ensure the string is non-empty and matches known public connection patterns if not null.
-    condition     = var.external_connection == null ? true : can(regex("^public:(npmjs|pypi|maven-central|maven-google-android|maven-gradle-plugin|maven-commonsware|nuget-org)$", var.external_connection))
+    condition     = var.external_connection == null ? true : can(regex("^public:(npmjs|pypi|maven-central|maven-googleandroid|maven-gradleplugins|maven-commonsware|nuget-org|ruby-gems-org|crates-io)$", var.external_connection))
     error_message = "The external connection name must be a non-empty string matching a known public pattern (e.g., 'public:npmjs', 'public:pypi', etc.) or null."
   }
 }
