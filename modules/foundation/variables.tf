@@ -239,27 +239,6 @@ variable "additional_bucket_policies" {
   }
 }
 
-variable "bucket_name" {
-  type        = string
-  description = <<-DESC
-  Name of the S3 bucket to create. If not provided, a default name will be generated using the pattern:
-  codeartifact-[account-id]
-
-  **NAMING CONSTRAINTS**:
-  - Must be lowercase
-  - Must be between 3 and 63 characters
-  - Can contain only letters, numbers, dots (.), and hyphens (-)
-  - Must begin and end with a letter or number
-  - Must not be formatted as an IP address
-  DESC
-  default     = null
-
-  validation {
-    condition     = var.bucket_name == null || can(regex("^[a-z0-9][a-z0-9.-]*[a-z0-9]$", var.bucket_name))
-    error_message = "Bucket name must be lowercase, start and end with a letter/number, and contain only letters, numbers, dots, and hyphens."
-  }
-}
-
 variable "codeartifact_domain_name" {
   type        = string
   default     = "awsca-default"

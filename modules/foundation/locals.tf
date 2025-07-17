@@ -147,7 +147,7 @@ locals {
           Effect = statement.effect
           Principal = {
             # Format Principal correctly - always use list type for consistency
-            "${statement.principals.type}" = statement.principals.identifiers
+            (statement.principals.type) = statement.principals.identifiers
           }
           Action   = statement.actions
           Resource = statement.resources
